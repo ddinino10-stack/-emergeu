@@ -1,8 +1,10 @@
+/* eslint-disable */
 import { useState, useEffect } from 'react';
 import { supabase } from './supabase';
 import Login from './Login';
 import Signup from './Signup';
 import Dashboard from './Dashboard';
+import AiChat from './AiChat';
 
 function App() {
   const [showIntro, setShowIntro] = useState(true);
@@ -11,6 +13,7 @@ function App() {
   const [authMode, setAuthMode] = useState('login');
   const [user, setUser] = useState(null);
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [showChat, setShowChat] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [type, setType] = useState('client');
@@ -44,7 +47,6 @@ function App() {
     setLoading(false);
   };
 
-  // Intro screen
   if (showIntro) return (
     <div style={{
       backgroundColor: '#000', minHeight: '100vh',
@@ -60,7 +62,6 @@ function App() {
           height: '200px',
           borderRadius: '24px',
           boxShadow: '0 0 80px rgba(255,107,0,0.5)',
-          animation: 'pulse 2s ease-in-out'
         }}
       />
       <p style={{
@@ -87,7 +88,8 @@ function App() {
     </div>
   );
 
-  if (user) return <Dashboard user={user} />;
+  if (showChat) return <AiChat onComplete={() => setShowChat(false)} />;
+  if (user) return <Dashboard user={user} onStartChat={() => setShowChat(true)} />;
 
   if (showForm && authMode === 'login') return (
     <Login onSwitch={() => setAuthMode('signup')} />
@@ -299,7 +301,6 @@ function App() {
       <div style={{ textAlign: 'center', padding: '30px', borderTop: '1px solid #222', color: '#555' }}>
         <p>© 2026 EmergeU — Become Unrecognisable</p>
       </div>
-
     </div>
   );
 }

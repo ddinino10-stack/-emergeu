@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
 
-function Dashboard({ user }) {
+function Dashboard({ user, onStartChat }) {
   const handleLogout = async () => {
     await supabase.auth.signOut();
   };
@@ -54,14 +54,15 @@ function Dashboard({ user }) {
             { icon: '💰', title: 'Earnings', desc: 'Coming soon' },
             { icon: '⭐', title: 'Reviews', desc: 'Coming soon' }
           ] : [
-            { icon: '🤖', title: 'Find My PT', desc: 'AI matching coming soon' },
+            { icon: '🤖', title: 'Find My PT', desc: 'Start AI matching now!', action: onStartChat },
             { icon: '📅', title: 'My Sessions', desc: 'Coming soon' },
             { icon: '📊', title: 'My Progress', desc: 'Coming soon' },
             { icon: '💬', title: 'Messages', desc: 'Coming soon' }
           ]).map((item, i) => (
-            <div key={i} style={{
+            <div key={i} onClick={item.action || null} style={{
               backgroundColor: '#111', border: '1px solid #222',
-              borderRadius: '16px', padding: '30px', width: '180px', textAlign: 'center'
+              borderRadius: '16px', padding: '30px', width: '180px', textAlign: 'center',
+              cursor: item.action ? 'pointer' : 'default'
             }}>
               <div style={{ fontSize: '36px', marginBottom: '12px' }}>{item.icon}</div>
               <h3 style={{ color: '#FF6B00', marginBottom: '8px', fontSize: '16px' }}>{item.title}</h3>

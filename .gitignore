@@ -22,3 +22,5 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 EmergeU API key for mailchimp.txt
+src/.env
+.env
