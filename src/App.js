@@ -213,9 +213,6 @@ function App() {
         <p style={{ fontSize: '18px', color: '#888', maxWidth: '650px', margin: '0 auto 20px', lineHeight: '1.8' }}>
           Our AI gets to know you — your goals, your personality, your lifestyle and your budget. Then it matches you with the perfect PT. Not just any PT. YOUR PT.
         </p>
-        <p style={{ color: '#FF6B00', fontSize: '20px', fontWeight: 'bold', marginBottom: '50px' }}>
-          Like BetterHelp — but for fitness 💪🏼
-        </p>
         <div style={{ display: 'flex', justifyContent: 'center', gap: '30px', flexWrap: 'wrap' }}>
           {[
             { icon: '🤖', title: 'AI Matching', desc: 'Smart matching based on your goals, personality and budget' },
