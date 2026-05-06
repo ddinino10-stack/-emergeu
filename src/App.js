@@ -8,6 +8,7 @@ import AiChat from './AiChat';
 import PTProfile from './PTProfile';
 import AdminDashboard from './AdminDashboard';
 import MatchResults from './MatchResults';
+import Messaging from './Messaging';
 
 function App() {
   const [showIntro, setShowIntro] = useState(true);
@@ -25,6 +26,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
   const [showMatches, setShowMatches] = useState(false);
+  const [showMessaging, setShowMessaging] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -98,7 +100,8 @@ function App() {
   if (showMatches) return <MatchResults user={user} onBack={() => setShowMatches(false)} />;
   if (showPTProfile) return <PTProfile user={user} onComplete={() => setShowPTProfile(false)} />;
   if (showAdmin) return <AdminDashboard user={user} onExit={() => setShowAdmin(false)} />;
-  if (user) return <Dashboard user={user} onStartChat={() => setShowChat(true)} onBuildProfile={() => setShowPTProfile(true)} onOpenAdmin={() => setShowAdmin(true)} />;
+  if (showMessaging) return <Messaging user={user} onBack={() => setShowMessaging(false)} />;
+  if (user) return <Dashboard user={user} onStartChat={() => setShowChat(true)} onBuildProfile={() => setShowPTProfile(true)} onOpenAdmin={() => setShowAdmin(true)} onOpenMessaging={() => setShowMessaging(true)} />;
 
   if (showForm && authMode === 'login') return (
     <Login onSwitch={() => setAuthMode('signup')} />

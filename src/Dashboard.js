@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
 
-function Dashboard({ user, onStartChat, onBuildProfile, onOpenAdmin }) {
+function Dashboard({ user, onStartChat, onBuildProfile, onOpenAdmin, onOpenMessaging }) {
   const handleLogout = async () => {
     await supabase.auth.signOut();
   };
@@ -64,7 +64,7 @@ function Dashboard({ user, onStartChat, onBuildProfile, onOpenAdmin }) {
             { icon: '🤖', title: 'Find My PT', desc: 'Start AI matching now!', action: onStartChat },
             { icon: '📅', title: 'My Sessions', desc: 'Coming soon' },
             { icon: '📊', title: 'My Progress', desc: 'Coming soon' },
-            { icon: '💬', title: 'Messages', desc: 'Coming soon' }
+            { icon: '💬', title: 'Messages', desc: 'Chat with your PT', action: onOpenMessaging }
           ]).map((item, i) => (
             <div key={i} onClick={item.action || null} style={{
               backgroundColor: '#111', border: '1px solid #222',
