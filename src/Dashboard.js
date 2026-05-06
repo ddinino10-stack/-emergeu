@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
 
-function Dashboard({ user, onStartChat }) {
+function Dashboard({ user, onStartChat, onBuildProfile, onOpenAdmin }) {
   const handleLogout = async () => {
     await supabase.auth.signOut();
   };
@@ -28,6 +28,13 @@ function Dashboard({ user, onStartChat }) {
           <span style={{ color: '#888' }}>
             {userType === 'pt' ? '💪 PT Account' : '👤 Client Account'}
           </span>
+          {user?.id === '9406cb25-1185-4629-b1e8-f4cad9dcaa75' && (
+            <button onClick={onOpenAdmin} style={{
+              backgroundColor: '#FF6B00', color: 'white', border: 'none',
+              padding: '10px 20px', borderRadius: '20px', cursor: 'pointer',
+              fontWeight: 'bold', fontSize: '14px'
+            }}>⚙️ Admin</button>
+          )}
           <button onClick={handleLogout} style={{
             backgroundColor: 'transparent', color: '#FF6B00',
             border: '2px solid #FF6B00', padding: '10px 20px',
@@ -49,8 +56,8 @@ function Dashboard({ user, onStartChat }) {
 
         <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap' }}>
           {(userType === 'pt' ? [
+            { icon: '👤', title: 'My Profile', desc: 'Build your PT profile', action: onBuildProfile },
             { icon: '👥', title: 'My Clients', desc: 'Coming soon' },
-            { icon: '📅', title: 'Sessions', desc: 'Coming soon' },
             { icon: '💰', title: 'Earnings', desc: 'Coming soon' },
             { icon: '⭐', title: 'Reviews', desc: 'Coming soon' }
           ] : [
