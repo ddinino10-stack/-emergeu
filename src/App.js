@@ -10,6 +10,8 @@ import AdminDashboard from './AdminDashboard';
 import MatchResults from './MatchResults';
 import Messaging from './Messaging';
 import Santiago from './Santiago';
+import Success from './Success';
+
 
 function App() {
   const [showIntro, setShowIntro] = useState(true);
@@ -29,6 +31,8 @@ function App() {
   const [showMatches, setShowMatches] = useState(false);
   const [showMessaging, setShowMessaging] = useState(false);
   const [showSantiago, setShowSantiago] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -104,6 +108,7 @@ function App() {
   if (showAdmin) return <AdminDashboard user={user} onExit={() => setShowAdmin(false)} />;
   if (showMessaging) return <Messaging user={user} onBack={() => setShowMessaging(false)} />;
   if (showSantiago) return <Santiago user={user} onBack={() => setShowSantiago(false)} />;
+  if (showSuccess) return <Success user={user} onContinue={() => { setShowSuccess(false); setShowSantiago(true); }} />;
   if (user) return <Dashboard user={user} onStartChat={() => setShowChat(true)} onBuildProfile={() => setShowPTProfile(true)} onOpenAdmin={() => setShowAdmin(true)} onOpenMessaging={() => setShowMessaging(true)} onOpenSantiago={() => setShowSantiago(true)} />;
 
 

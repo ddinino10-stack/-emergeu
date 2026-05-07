@@ -17,26 +17,25 @@ function Subscribe({ user, onBack, onSuccess }) {
   ];
 
   const handleSubscribe = async () => {
-    console.log('Button clicked!');
-    console.log('User:', user);
-    if (!user?.id) {
-      console.error('No user found');
-      return;
-    }
+    if (!user?.id) return;
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('subscriptions')
-        .upsert([{
-          user_id: user.id,
-          plan: 'santiago_pro',
-          status: 'active',
-          created_at: new Date().toISOString()
-        }]);
-      if (error) {
-        console.error('Supabase error:', error);
+      const response = await fetch('/api/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          priceId: process.env.REACT_APP_STRIPE_PRICE_ID,
+          userId: user.id,
+          userEmail: user.email
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.url) {
+        window.location.href = data.url;
       } else {
-        onSuccess();
+        console.error('No URL returned:', data);
       }
     } catch (err) {
       console.error('Error:', err);
