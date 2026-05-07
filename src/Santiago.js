@@ -1,7 +1,15 @@
 /* eslint-disable */
 import { useState, useRef, useEffect } from 'react';
+import { supabase } from './supabase';
+import Subscribe from './Subscribe';
 
-function Santiago({ onBack }) {
+const PREMIUM_KEYWORDS = [
+  'meal plan', 'workout plan', 'training programme', 'training program',
+  'diet plan', 'nutrition plan', 'fitness plan', 'exercise plan',
+  'workout programme', 'weekly plan', 'monthly plan', 'training plan'
+];
+
+function Santiago({ user, onBack }) {
   const [messages, setMessages] = useState([
     {
       role: 'ai',
@@ -10,11 +18,33 @@ function Santiago({ onBack }) {
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [isPro, setIsPro] = useState(false);
   const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    checkSubscription();
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  const checkSubscription = async () => {
+    if (!user?.id) return;
+    const { data } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .single();
+    if (data) setIsPro(true);
+  }
+
+  const isPremiumRequest = (text) => {
+    const lower = text.toLowerCase();
+    return PREMIUM_KEYWORDS.some(keyword => lower.includes(keyword));
+  };
 
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
@@ -23,6 +53,18 @@ function Santiago({ onBack }) {
     const newMessages = [...messages, { role: 'user', text: userMessage }];
     setMessages(newMessages);
     setInput('');
+
+    if (!isPro && isPremiumRequest(userMessage)) {
+      setTimeout(() => {
+        setMessages([...newMessages, {
+          role: 'ai',
+          text: "I'd love to create a personalised plan for you! 🔥 This is a Santiago Pro feature — upgrade to get unlimited meal plans, workout programmes and much more for just £9.99/month 💪🏼"
+        }]);
+        setTimeout(() => setShowPaywall(true), 1500);
+      }, 800);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -92,6 +134,21 @@ You are NOT a general AI assistant — you only discuss fitness, nutrition, heal
     setLoading(false);
   };
 
+  if (showPaywall) return (
+    <Subscribe
+      user={user}
+      onBack={() => setShowPaywall(false)}
+      onSuccess={() => {
+        setIsPro(true);
+        setShowPaywall(false);
+        setMessages(prev => [...prev, {
+          role: 'ai',
+          text: "Welcome to Santiago Pro! 🎉🔥 You now have full access to personalised meal plans, workout programmes and everything else. Now, let's get back to building that plan for you — what would you like first?"
+        }]);
+      }}
+    />
+  );
+
   return (
     <div style={{
       backgroundColor: '#0a0a0a', minHeight: '100vh',
@@ -111,56 +168,68 @@ You are NOT a general AI assistant — you only discuss fitness, nutrition, heal
           boxShadow: '0 0 20px rgba(255,107,0,0.4)'
         }}>🤖</div>
         <div style={{ flex: 1 }}>
-          <h3 style={{ color: 'white', margin: 0, fontSize: '18px' }}>Santiago</h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <h3 style={{ color: 'white', margin: 0, fontSize: '18px' }}>Santiago</h3>
+            {isPro && (
+              <span style={{
+                backgroundColor: '#FF6B00', color: 'white',
+                padding: '2px 10px', borderRadius: '10px',
+                fontSize: '11px', fontWeight: 'bold'
+              }}>PRO ⚡</span>
+            )}
+          </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <div style={{
               width: '8px', height: '8px', borderRadius: '50%',
-              backgroundColor: '#00ff88', animation: 'pulse 2s infinite'
+              backgroundColor: '#00ff88'
             }}></div>
             <p style={{ color: '#00ff88', margin: 0, fontSize: '12px' }}>Online — Your AI PT</p>
           </div>
         </div>
-        <button onClick={onBack} style={{
-          backgroundColor: 'transparent', color: '#888',
-          border: '1px solid #333', padding: '8px 16px',
-          borderRadius: '20px', cursor: 'pointer', fontSize: '13px'
-        }}>Back to Dashboard</button>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          {!isPro && (
+            <button
+              onClick={() => setShowPaywall(true)}
+              style={{
+                backgroundColor: '#FF6B00', color: 'white', border: 'none',
+                padding: '8px 16px', borderRadius: '20px', cursor: 'pointer',
+                fontSize: '13px', fontWeight: 'bold'
+              }}>⚡ Go Pro</button>
+          )}
+          <button onClick={onBack} style={{
+            backgroundColor: 'transparent', color: '#888',
+            border: '1px solid #333', padding: '8px 16px',
+            borderRadius: '20px', cursor: 'pointer', fontSize: '13px'
+          }}>Back</button>
+        </div>
       </div>
 
-      {/* Quick Action Buttons */}
+      {/* Quick Actions */}
       <div style={{
         padding: '16px 20px', borderBottom: '1px solid #111',
         display: 'flex', gap: '10px', flexWrap: 'wrap',
         backgroundColor: '#050505'
       }}>
         {[
-          '💪 Create Workout Plan',
-          '🥗 Generate Meal Plan',
-          '🔥 Help Me Lose Weight',
-          '📊 Track My Progress',
-          '😴 Recovery Advice'
+          { label: '💪 Create Workout Plan', pro: true },
+          { label: '🥗 Generate Meal Plan', pro: true },
+          { label: '🔥 Help Me Lose Weight', pro: false },
+          { label: '😴 Recovery Advice', pro: false },
+          { label: '💊 Supplement Advice', pro: false }
         ].map((action, i) => (
           <button
             key={i}
-            onClick={() => {
-              setInput(action.substring(3));
-            }}
+            onClick={() => setInput(action.label.substring(3))}
             style={{
-              backgroundColor: '#111', border: '1px solid #333',
-              color: '#888', padding: '8px 16px', borderRadius: '20px',
+              backgroundColor: '#111',
+              border: `1px solid ${action.pro && !isPro ? '#FF6B00' : '#333'}`,
+              color: action.pro && !isPro ? '#FF6B00' : '#888',
+              padding: '8px 16px', borderRadius: '20px',
               cursor: 'pointer', fontSize: '13px',
-              transition: 'all 0.2s'
-            }}
-            onMouseOver={e => {
-              e.target.style.borderColor = '#FF6B00';
-              e.target.style.color = '#FF6B00';
-            }}
-            onMouseOut={e => {
-              e.target.style.borderColor = '#333';
-              e.target.style.color = '#888';
-            }}
-          >
-            {action}
+              display: 'flex', alignItems: 'center', gap: '4px'
+            }}>
+            {action.label}
+            {action.pro && !isPro && <span style={{ fontSize: '10px' }}>⚡PRO</span>}
           </button>
         ))}
       </div>
@@ -169,7 +238,7 @@ You are NOT a general AI assistant — you only discuss fitness, nutrition, heal
       <div style={{
         flex: 1, padding: '24px 20px', overflowY: 'auto',
         display: 'flex', flexDirection: 'column', gap: '16px',
-        maxHeight: 'calc(100vh - 240px)'
+        maxHeight: 'calc(100vh - 250px)'
       }}>
         {messages.map((msg, i) => (
           <div key={i} style={{
@@ -231,7 +300,7 @@ You are NOT a general AI assistant — you only discuss fitness, nutrition, heal
       }}>
         <input
           type="text"
-          placeholder="Ask Santiago anything about fitness..."
+          placeholder={isPro ? "Ask Santiago anything..." : "Ask Santiago a question (meal plans require Pro)..."}
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyPress={e => e.key === 'Enter' && sendMessage()}

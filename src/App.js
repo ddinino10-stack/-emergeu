@@ -103,7 +103,7 @@ function App() {
   if (showPTProfile) return <PTProfile user={user} onComplete={() => setShowPTProfile(false)} />;
   if (showAdmin) return <AdminDashboard user={user} onExit={() => setShowAdmin(false)} />;
   if (showMessaging) return <Messaging user={user} onBack={() => setShowMessaging(false)} />;
-  if (showSantiago) return <Santiago onBack={() => setShowSantiago(false)} />;
+  if (showSantiago) return <Santiago user={user} onBack={() => setShowSantiago(false)} />;
   if (user) return <Dashboard user={user} onStartChat={() => setShowChat(true)} onBuildProfile={() => setShowPTProfile(true)} onOpenAdmin={() => setShowAdmin(true)} onOpenMessaging={() => setShowMessaging(true)} onOpenSantiago={() => setShowSantiago(true)} />;
 
 
