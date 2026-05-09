@@ -12,6 +12,8 @@ import Messaging from './Messaging';
 import Santiago from './Santiago';
 import Success from './Success';
 import Emma from './Emma';
+import MealIdeas from './MealIdeas';
+
 
 
 function App() {
@@ -34,6 +36,8 @@ function App() {
   const [showSantiago, setShowSantiago] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [showEmma, setShowEmma] = useState(false);
+  const [showMealIdeas, setShowMealIdeas] = useState(false);
+
 
 
 
@@ -112,8 +116,10 @@ function App() {
   if (showMessaging) return <Messaging user={user} onBack={() => setShowMessaging(false)} />;
   if (showSantiago) return <Santiago user={user} onBack={() => setShowSantiago(false)} />;
   if (showEmma) return <Emma user={user} onBack={() => setShowEmma(false)} />;
+  if (showMealIdeas) return <MealIdeas user={user} onBack={() => setShowMealIdeas(false)} />;
   if (showSuccess) return <Success user={user} onContinue={() => { setShowSuccess(false); setShowSantiago(true); }} />;
-  if (user) return <Dashboard user={user} onStartChat={() => setShowChat(true)} onBuildProfile={() => setShowPTProfile(true)} onOpenAdmin={() => setShowAdmin(true)} onOpenMessaging={() => setShowMessaging(true)} onOpenSantiago={() => setShowSantiago(true)} onOpenEmma={() => setShowEmma(true)} />;
+  if (user) return <Dashboard user={user} onStartChat={() => setShowChat(true)} onBuildProfile={() => setShowPTProfile(true)} onOpenAdmin={() => setShowAdmin(true)} onOpenMessaging={() => setShowMessaging(true)} onOpenSantiago={() => setShowSantiago(true)} onOpenEmma={() => setShowEmma(true)} onOpenMealIdeas={() => setShowMealIdeas(true)} />;
+
 
 
   if (showForm && authMode === 'login') return (

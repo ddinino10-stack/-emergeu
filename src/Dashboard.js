@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
 
-function Dashboard({ user, onStartChat, onBuildProfile, onOpenAdmin, onOpenMessaging, onOpenSantiago, onOpenEmma }) {
+function Dashboard({ user, onStartChat, onBuildProfile, onOpenAdmin, onOpenMessaging, onOpenSantiago, onOpenEmma, onOpenMealIdeas }) {
   const handleLogout = async () => {
     await supabase.auth.signOut();
   };
@@ -59,14 +59,17 @@ function Dashboard({ user, onStartChat, onBuildProfile, onOpenAdmin, onOpenMessa
             { icon: '👤', title: 'My Profile', desc: 'Build your PT profile', action: onBuildProfile },
             { icon: '👥', title: 'My Clients', desc: 'Coming soon' },
             { icon: '💰', title: 'Earnings', desc: 'Coming soon' },
-            { icon: '⭐', title: 'Reviews', desc: 'Coming soon' }
+            { icon: '⭐', title: 'Reviews', desc: 'Coming soon' },
+            { icon: '🍔', title: 'Meal Ideas', desc: 'Generate meal ideas', action: onOpenMealIdeas }
           ] : [
             { icon: '🤖', title: 'Find My PT', desc: 'Start AI matching now!', action: onStartChat },
             { icon: '🏋️', title: 'Santiago AI PT', desc: 'Your 24/7 AI fitness coach', action: onOpenSantiago },
             { icon: '👩', title: 'Emma AI PT', desc: 'Your supportive AI coach', action: onOpenEmma },
             { icon: '📅', title: 'My Sessions', desc: 'Coming soon' },
             { icon: '📊', title: 'My Progress', desc: 'Coming soon' },
-            { icon: '💬', title: 'Messages', desc: 'Chat with your PT', action: onOpenMessaging }
+            { icon: '💬', title: 'Messages', desc: 'Chat with your PT', action: onOpenMessaging },
+            { icon: '🍔', title: 'Meal Ideas', desc: 'AI meal inspiration', action: onOpenMealIdeas }
+
           ]).map((item, i) => (
             <div key={i} onClick={item.action || null} style={{
               backgroundColor: '#111', border: '1px solid #222',
