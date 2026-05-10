@@ -1,4 +1,4 @@
-/* eslint-disable */
+/* eslint-disable */ // v2
 import { useState, useEffect } from 'react';
 import { supabase } from './supabase';
 import Login from './Login';
