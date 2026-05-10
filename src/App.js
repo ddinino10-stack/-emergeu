@@ -120,9 +120,11 @@ function App() {
   if (showMessaging) return <Messaging user={user} onBack={() => setShowMessaging(false)} />;
   if (showSantiago) return <Santiago user={user} onBack={() => setShowSantiago(false)} />;
   if (showEmma) return <Emma user={user} onBack={() => setShowEmma(false)} />;
+  if (showMealIdeas) return <MealIdeas user={user} onBack={() => setShowMealIdeas(false)} />;
+  if (showFoodTracker) return <FoodTracker user={user} onBack={() => setShowFoodTracker(false)} />;
   if (showPTTools) return <PTTools user={user} onBack={() => setShowPTTools(false)} />;
   if (showSuccess) return <Success user={user} onContinue={() => { setShowSuccess(false); setShowSantiago(true); }} />;
-if (user) return <Dashboard user={user} onStartChat={() => setShowChat(true)} onBuildProfile={() => setShowPTProfile(true)} onOpenAdmin={() => setShowAdmin(true)} onOpenMessaging={() => setShowMessaging(true)} onOpenSantiago={() => setShowSantiago(true)} onOpenEmma={() => setShowEmma(true)} onOpenMealIdeas={() => setShowMealIdeas(true)} onOpenFoodTracker={() => setShowFoodTracker(true)} onOpenPTTools={() => setShowPTTools(true)} />;
+  if (user) return <Dashboard user={user} onStartChat={() => setShowChat(true)} onBuildProfile={() => setShowPTProfile(true)} onOpenAdmin={() => setShowAdmin(true)} onOpenMessaging={() => setShowMessaging(true)} onOpenSantiago={() => setShowSantiago(true)} onOpenEmma={() => setShowEmma(true)} onOpenMealIdeas={() => setShowMealIdeas(true)} onOpenFoodTracker={() => setShowFoodTracker(true)} onOpenPTTools={() => setShowPTTools(true)} />;
 
 
 
