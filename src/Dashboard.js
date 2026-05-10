@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
 
-function Dashboard({ user, onStartChat, onBuildProfile, onOpenAdmin, onOpenMessaging, onOpenSantiago, onOpenEmma, onOpenMealIdeas, onOpenFoodTracker }) {
+function Dashboard({ user, onStartChat, onBuildProfile, onOpenAdmin, onOpenMessaging, onOpenSantiago, onOpenEmma, onOpenMealIdeas, onOpenFoodTracker, onOpenPTTools }) {
   const handleLogout = async () => {
     await supabase.auth.signOut();
   };
@@ -61,7 +61,8 @@ function Dashboard({ user, onStartChat, onBuildProfile, onOpenAdmin, onOpenMessa
             { icon: '💰', title: 'Earnings', desc: 'Coming soon' },
             { icon: '⭐', title: 'Reviews', desc: 'Coming soon' },
             { icon: '🍔', title: 'Meal Ideas', desc: 'Generate meal ideas', action: onOpenMealIdeas },
-            { icon: '🍎', title: 'Food Tracker', desc: 'Track your daily nutrition', action: onOpenFoodTracker }
+            { icon: '🍎', title: 'Food Tracker', desc: 'Track your daily nutrition', action: onOpenFoodTracker },
+            { icon: '🤖', title: 'AI Tools', desc: 'Fitness plans, meal plans & notes', action: onOpenPTTools }
 
           ] : [
             { icon: '🤖', title: 'Find My PT', desc: 'Start AI matching now!', action: onStartChat },
