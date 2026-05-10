@@ -65,10 +65,10 @@ function Dashboard({ user, onStartChat, onBuildProfile, onOpenAdmin, onOpenMessa
             { icon: '🤖', title: 'Find My PT', desc: 'Start AI matching now!', action: onStartChat },
             { icon: '🏋️', title: 'Santiago AI PT', desc: 'Your 24/7 AI fitness coach', action: onOpenSantiago },
             { icon: '👩', title: 'Emma AI PT', desc: 'Your supportive AI coach', action: onOpenEmma },
+            { icon: '🍔', title: 'Meal Ideas', desc: 'AI meal inspiration', action: onOpenMealIdeas },
             { icon: '📅', title: 'My Sessions', desc: 'Coming soon' },
             { icon: '📊', title: 'My Progress', desc: 'Coming soon' },
-            { icon: '💬', title: 'Messages', desc: 'Chat with your PT', action: onOpenMessaging },
-            { icon: '🍔', title: 'Meal Ideas', desc: 'AI meal inspiration', action: onOpenMealIdeas }
+            { icon: '💬', title: 'Messages', desc: 'Chat with your PT', action: onOpenMessaging }
 
           ]).map((item, i) => (
             <div key={i} onClick={item.action || null} style={{
