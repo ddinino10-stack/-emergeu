@@ -19,28 +19,7 @@ function Subscribe({ user, onBack, onSuccess }) {
   const handleSubscribe = async () => {
     if (!user?.id) return;
     setLoading(true);
-    try {
-      const response = await fetch('/api/create-checkout-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          priceId: process.env.REACT_APP_STRIPE_PRICE_ID,
-          userId: user.id,
-          userEmail: user.email
-        })
-      });
-
-      const data = await response.json();
-
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        console.error('No URL returned:', data);
-      }
-    } catch (err) {
-      console.error('Error:', err);
-    }
-    setLoading(false);
+    window.location.href = 'https://buy.stripe.com/test_9B614n5gbbDucuX6npaMU00';
   };
 
   return (
