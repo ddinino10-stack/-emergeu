@@ -1,10 +1,11 @@
 /* eslint-disable */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from './supabase';
-
+ 
 function PTProfile({ user, onComplete }) {
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [draftSaved, setDraftSaved] = useState(false);
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
   const [profile, setProfile] = useState({
@@ -17,13 +18,37 @@ function PTProfile({ user, onComplete }) {
     coaching_style: '',
     availability: ''
   });
-
+ 
   const specialismOptions = [
     'Weight Loss', 'Muscle Building', 'Strength Training',
     'Cardio & Endurance', 'Sports Specific', 'Rehabilitation',
     'Nutrition Coaching', 'HIIT', 'Yoga & Flexibility', 'Senior Fitness'
   ];
-
+ 
+  useEffect(() => {
+    const loadDraft = async () => {
+      const { data } = await supabase
+        .from('pt_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+      if (data) {
+        setProfile({
+          name: data.name || '',
+          bio: data.bio || '',
+          specialisms: data.specialisms ? data.specialisms.split(', ') : [],
+          location: data.location || '',
+          training_type: data.training_type || '',
+          pricing_tier: data.pricing_tier || '',
+          coaching_style: data.coaching_style || '',
+          availability: data.availability || ''
+        });
+        if (data.photo_url) setPhotoPreview(data.photo_url);
+      }
+    };
+    loadDraft();
+  }, []);
+ 
   const toggleSpecialism = (item) => {
     setProfile(prev => ({
       ...prev,
@@ -32,14 +57,14 @@ function PTProfile({ user, onComplete }) {
         : [...prev.specialisms, item]
     }));
   };
-
+ 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
     setPhotoFile(file);
     setPhotoPreview(URL.createObjectURL(file));
   };
-
+ 
   const uploadPhoto = async () => {
     if (!photoFile) return null;
     const fileExt = photoFile.name.split('.').pop();
@@ -51,12 +76,17 @@ function PTProfile({ user, onComplete }) {
     const { data } = supabase.storage.from('pt-photos').getPublicUrl(fileName);
     return data.publicUrl;
   };
-
-  const handleSave = async () => {
+ 
+  const handleSave = async (status = 'pending') => {
     if (!profile.name || !profile.bio || !profile.location) return;
     setLoading(true);
     try {
-      const photoUrl = await uploadPhoto();
+      let photoUrl = null;
+      try {
+        photoUrl = await uploadPhoto();
+      } catch (photoErr) {
+        console.error('Photo upload failed:', photoErr);
+      }
       const { error } = await supabase
         .from('pt_profiles')
         .upsert([{
@@ -70,27 +100,36 @@ function PTProfile({ user, onComplete }) {
           coaching_style: profile.coaching_style,
           availability: profile.availability,
           approved: false,
+          status: status,
           ...(photoUrl && { photo_url: photoUrl })
         }]);
-      if (error) console.error(error);
-      else setSaved(true);
+      if (error) {
+        console.error(error);
+      } else {
+        if (status === 'draft') {
+          setDraftSaved(true);
+          setTimeout(() => setDraftSaved(false), 3000);
+        } else {
+          setSaved(true);
+        }
+      }
     } catch (err) {
       console.error(err);
     }
     setLoading(false);
   };
-
+ 
   const inputStyle = {
     width: '100%', padding: '14px', borderRadius: '12px',
     border: '1px solid #333', backgroundColor: '#1a1a1a',
     color: 'white', fontSize: '16px', marginBottom: '16px',
     boxSizing: 'border-box', outline: 'none'
   };
-
+ 
   const labelStyle = {
     color: '#888', fontSize: '14px', marginBottom: '8px', display: 'block'
   };
-
+ 
   return (
     <div style={{
       backgroundColor: '#0a0a0a', minHeight: '100vh',
@@ -109,9 +148,9 @@ function PTProfile({ user, onComplete }) {
           borderRadius: '20px', cursor: 'pointer', fontSize: '13px'
         }}>Back to Dashboard</button>
       </nav>
-
+ 
       <div style={{ maxWidth: '700px', margin: '0 auto', padding: '40px 20px' }}>
-
+ 
         {saved ? (
           <div style={{ textAlign: 'center', padding: '60px 20px' }}>
             <div style={{ fontSize: '60px', marginBottom: '20px' }}>🎉</div>
@@ -133,7 +172,7 @@ function PTProfile({ user, onComplete }) {
             <p style={{ color: '#888', marginBottom: '40px' }}>
               This is what clients will see when they're matched with you
             </p>
-
+ 
             {/* Photo Upload */}
             <label style={labelStyle}>Profile Photo</label>
             <div style={{ display: 'flex', alignItems: 'center', gap: '24px', marginBottom: '24px' }}>
@@ -168,7 +207,7 @@ function PTProfile({ user, onComplete }) {
                 </p>
               </div>
             </div>
-
+ 
             {/* Name */}
             <label style={labelStyle}>Full Name *</label>
             <input
@@ -176,7 +215,7 @@ function PTProfile({ user, onComplete }) {
               onChange={e => setProfile({ ...profile, name: e.target.value })}
               style={inputStyle}
             />
-
+ 
             {/* Bio */}
             <label style={labelStyle}>Your Bio * — Tell clients about yourself and your journey</label>
             <textarea
@@ -186,7 +225,7 @@ function PTProfile({ user, onComplete }) {
               rows={4}
               style={{ ...inputStyle, resize: 'vertical', fontFamily: 'Arial' }}
             />
-
+ 
             {/* Location */}
             <label style={labelStyle}>Your Location *</label>
             <input
@@ -195,7 +234,7 @@ function PTProfile({ user, onComplete }) {
               onChange={e => setProfile({ ...profile, location: e.target.value })}
               style={inputStyle}
             />
-
+ 
             {/* Specialisms */}
             <label style={labelStyle}>Your Specialisms — Select all that apply</label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '24px' }}>
@@ -209,7 +248,7 @@ function PTProfile({ user, onComplete }) {
                 }}>{item}</button>
               ))}
             </div>
-
+ 
             {/* Training Type */}
             <label style={labelStyle}>How do you train clients?</label>
             <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
@@ -223,7 +262,7 @@ function PTProfile({ user, onComplete }) {
                 }}>{type}</button>
               ))}
             </div>
-
+ 
             {/* Coaching Style */}
             <label style={labelStyle}>Your Coaching Style</label>
             <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
@@ -237,7 +276,7 @@ function PTProfile({ user, onComplete }) {
                 }}>{style}</button>
               ))}
             </div>
-
+ 
             {/* Pricing Tier */}
             <label style={labelStyle}>Your Monthly Pricing</label>
             <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
@@ -251,7 +290,7 @@ function PTProfile({ user, onComplete }) {
                 }}>{price}</button>
               ))}
             </div>
-
+ 
             {/* Availability */}
             <label style={labelStyle}>Your Availability</label>
             <input
@@ -261,19 +300,43 @@ function PTProfile({ user, onComplete }) {
               onChange={e => setProfile({ ...profile, availability: e.target.value })}
               style={inputStyle}
             />
-
-            {/* Submit */}
+ 
+            {/* Draft saved confirmation */}
+            {draftSaved && (
+              <div style={{
+                backgroundColor: 'rgba(255,107,0,0.1)', border: '1px solid #FF6B00',
+                borderRadius: '12px', padding: '14px', textAlign: 'center',
+                marginBottom: '16px', color: '#FF6B00', fontWeight: 'bold'
+              }}>
+                ✅ Draft saved!
+              </div>
+            )}
+ 
+            {/* Save Draft button */}
             <button
-              onClick={handleSave} disabled={loading}
+              onClick={() => handleSave('draft')} disabled={loading}
+              style={{
+                width: '100%', padding: '16px', borderRadius: '12px',
+                border: '2px solid #FF6B00', backgroundColor: 'transparent',
+                color: '#FF6B00', fontSize: '16px', fontWeight: 'bold',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                opacity: loading ? 0.7 : 1, marginBottom: '12px'
+              }}>
+              {loading ? 'Saving...' : 'Save as Draft'}
+            </button>
+ 
+            {/* Submit button */}
+            <button
+              onClick={() => handleSave('pending')} disabled={loading}
               style={{
                 width: '100%', padding: '18px', borderRadius: '12px', border: 'none',
                 backgroundColor: '#FF6B00', color: 'white', fontSize: '18px',
                 fontWeight: 'bold', cursor: loading ? 'not-allowed' : 'pointer',
-                opacity: loading ? 0.7 : 1, marginTop: '10px'
+                opacity: loading ? 0.7 : 1
               }}>
               {loading ? 'Submitting...' : 'Submit Profile for Review 🚀'}
             </button>
-
+ 
             <p style={{ color: '#555', textAlign: 'center', marginTop: '16px', fontSize: '13px' }}>
               Your profile will be reviewed by EmergeU before going live — usually within 24 hours
             </p>
@@ -283,5 +346,5 @@ function PTProfile({ user, onComplete }) {
     </div>
   );
 }
-
+ 
 export default PTProfile;
