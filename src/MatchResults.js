@@ -1,16 +1,16 @@
 /* eslint-disable */
 import { useState, useEffect } from 'react';
 import { supabase } from './supabase';
-
+ 
 function MatchResults({ user, onBack }) {
   const [pts, setPts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedPT, setSelectedPT] = useState(null);
-
+ 
   useEffect(() => {
     fetchMatches();
   }, []);
-
+ 
   const fetchMatches = async () => {
     setLoading(true);
     const { data, error } = await supabase
@@ -21,7 +21,7 @@ function MatchResults({ user, onBack }) {
     if (!error) setPts(data || []);
     setLoading(false);
   };
-
+ 
   if (loading) return (
     <div style={{
       backgroundColor: '#0a0a0a', minHeight: '100vh',
@@ -34,7 +34,7 @@ function MatchResults({ user, onBack }) {
       </div>
     </div>
   );
-
+ 
   if (selectedPT) return (
     <div style={{
       backgroundColor: '#0a0a0a', minHeight: '100vh',
@@ -54,26 +54,33 @@ function MatchResults({ user, onBack }) {
           borderRadius: '20px', cursor: 'pointer', fontSize: '13px'
         }}>← Back to Matches</button>
       </nav>
-
+ 
       <div style={{ maxWidth: '700px', margin: '0 auto', padding: '40px 20px' }}>
         <div style={{
           backgroundColor: '#111', border: '1px solid #333',
           borderRadius: '24px', padding: '40px'
         }}>
           <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+            {/* PHOTO - detail view */}
             <div style={{
               width: '100px', height: '100px', borderRadius: '50%',
-              backgroundColor: '#FF6B00', display: 'flex', alignItems: 'center',
+              backgroundColor: '#FF6B00', overflow: 'hidden',
+              display: 'flex', alignItems: 'center',
               justifyContent: 'center', fontSize: '40px', margin: '0 auto 16px'
-            }}>💪</div>
+            }}>
+              {selectedPT.photo_url
+                ? <img src={selectedPT.photo_url} alt={selectedPT.name}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                : '💪'}
+            </div>
             <h2 style={{ color: '#FF6B00', margin: '0 0 8px 0', fontSize: '28px' }}>{selectedPT.name}</h2>
             <p style={{ color: '#888', margin: 0 }}>📍 {selectedPT.location}</p>
           </div>
-
+ 
           <p style={{ color: '#ccc', lineHeight: '1.8', marginBottom: '24px', fontSize: '16px' }}>
             {selectedPT.bio}
           </p>
-
+ 
           <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '24px' }}>
             {[
               { label: 'Training', value: selectedPT.training_type },
@@ -90,7 +97,7 @@ function MatchResults({ user, onBack }) {
               </div>
             ))}
           </div>
-
+ 
           {selectedPT.specialisms && (
             <div style={{ marginBottom: '30px' }}>
               <p style={{ color: '#888', fontSize: '14px', marginBottom: '12px' }}>Specialisms</p>
@@ -104,7 +111,7 @@ function MatchResults({ user, onBack }) {
               </div>
             </div>
           )}
-
+ 
           <button style={{
             width: '100%', padding: '16px', borderRadius: '12px', border: 'none',
             backgroundColor: '#FF6B00', color: 'white', fontSize: '18px',
@@ -116,7 +123,7 @@ function MatchResults({ user, onBack }) {
       </div>
     </div>
   );
-
+ 
   return (
     <div style={{
       backgroundColor: '#0a0a0a', minHeight: '100vh',
@@ -136,7 +143,7 @@ function MatchResults({ user, onBack }) {
           borderRadius: '20px', cursor: 'pointer', fontSize: '13px'
         }}>Back to Dashboard</button>
       </nav>
-
+ 
       <div style={{ maxWidth: '800px', margin: '0 auto', padding: '40px 20px' }}>
         <div style={{ textAlign: 'center', marginBottom: '50px' }}>
           <div style={{ fontSize: '50px', marginBottom: '16px' }}>🎯</div>
@@ -147,7 +154,7 @@ function MatchResults({ user, onBack }) {
             Based on your goals and personality, we found these PTs for you
           </p>
         </div>
-
+ 
         {pts.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px 20px' }}>
             <div style={{ fontSize: '60px', marginBottom: '20px' }}>😔</div>
@@ -173,14 +180,21 @@ function MatchResults({ user, onBack }) {
                     fontSize: '12px', fontWeight: 'bold'
                   }}>⭐ Best Match</div>
                 )}
-
+ 
                 <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                  {/* PHOTO - card view */}
                   <div style={{
                     width: '70px', height: '70px', borderRadius: '50%',
-                    backgroundColor: '#FF6B00', display: 'flex', alignItems: 'center',
+                    backgroundColor: '#FF6B00', overflow: 'hidden',
+                    display: 'flex', alignItems: 'center',
                     justifyContent: 'center', fontSize: '30px', flexShrink: 0
-                  }}>💪</div>
-
+                  }}>
+                    {pt.photo_url
+                      ? <img src={pt.photo_url} alt={pt.name}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      : '💪'}
+                  </div>
+ 
                   <div style={{ flex: 1 }}>
                     <h3 style={{ color: '#FF6B00', margin: '0 0 6px 0', fontSize: '22px' }}>{pt.name}</h3>
                     <p style={{ color: '#888', margin: '0 0 12px 0', fontSize: '14px' }}>
@@ -189,7 +203,7 @@ function MatchResults({ user, onBack }) {
                     <p style={{ color: '#ccc', margin: '0 0 16px 0', lineHeight: '1.6' }}>
                       {pt.bio?.substring(0, 150)}...
                     </p>
-
+ 
                     {pt.specialisms && (
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '20px' }}>
                         {pt.specialisms.split(', ').slice(0, 4).map((s, j) => (
@@ -200,7 +214,7 @@ function MatchResults({ user, onBack }) {
                         ))}
                       </div>
                     )}
-
+ 
                     <div style={{ display: 'flex', gap: '12px' }}>
                       <button
                         onClick={() => setSelectedPT(pt)}
@@ -230,5 +244,5 @@ function MatchResults({ user, onBack }) {
     </div>
   );
 }
-
+ 
 export default MatchResults;

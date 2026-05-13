@@ -5,6 +5,8 @@ import { supabase } from './supabase';
 function PTProfile({ user, onComplete }) {
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [photoFile, setPhotoFile] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
   const [profile, setProfile] = useState({
     name: user?.user_metadata?.name || '',
     bio: '',
@@ -31,10 +33,30 @@ function PTProfile({ user, onComplete }) {
     }));
   };
 
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setPhotoFile(file);
+    setPhotoPreview(URL.createObjectURL(file));
+  };
+
+  const uploadPhoto = async () => {
+    if (!photoFile) return null;
+    const fileExt = photoFile.name.split('.').pop();
+    const fileName = `${user.id}.${fileExt}`;
+    const { error } = await supabase.storage
+      .from('pt-photos')
+      .upload(fileName, photoFile, { upsert: true });
+    if (error) throw error;
+    const { data } = supabase.storage.from('pt-photos').getPublicUrl(fileName);
+    return data.publicUrl;
+  };
+
   const handleSave = async () => {
     if (!profile.name || !profile.bio || !profile.location) return;
     setLoading(true);
     try {
+      const photoUrl = await uploadPhoto();
       const { error } = await supabase
         .from('pt_profiles')
         .upsert([{
@@ -47,7 +69,8 @@ function PTProfile({ user, onComplete }) {
           pricing_tier: profile.pricing_tier,
           coaching_style: profile.coaching_style,
           availability: profile.availability,
-          approved: false
+          approved: false,
+          ...(photoUrl && { photo_url: photoUrl })
         }]);
       if (error) console.error(error);
       else setSaved(true);
@@ -73,7 +96,6 @@ function PTProfile({ user, onComplete }) {
       backgroundColor: '#0a0a0a', minHeight: '100vh',
       fontFamily: 'Arial, sans-serif', color: 'white'
     }}>
-      {/* Header */}
       <nav style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         padding: '20px 40px', borderBottom: '1px solid #222',
@@ -111,6 +133,41 @@ function PTProfile({ user, onComplete }) {
             <p style={{ color: '#888', marginBottom: '40px' }}>
               This is what clients will see when they're matched with you
             </p>
+
+            {/* Photo Upload */}
+            <label style={labelStyle}>Profile Photo</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '24px', marginBottom: '24px' }}>
+              <div style={{
+                width: '90px', height: '90px', borderRadius: '50%',
+                backgroundColor: '#1a1a1a', border: '2px solid #333',
+                overflow: 'hidden', display: 'flex', alignItems: 'center',
+                justifyContent: 'center', flexShrink: 0
+              }}>
+                {photoPreview
+                  ? <img src={photoPreview} alt="Preview"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  : <span style={{ fontSize: '32px' }}>💪</span>
+                }
+              </div>
+              <div>
+                <label htmlFor="photo-upload" style={{
+                  backgroundColor: '#1a1a1a', color: '#FF6B00',
+                  border: '2px solid #FF6B00', padding: '10px 20px',
+                  borderRadius: '20px', cursor: 'pointer', fontSize: '14px',
+                  fontWeight: 'bold', display: 'inline-block'
+                }}>
+                  {photoPreview ? 'Change Photo' : 'Upload Photo'}
+                </label>
+                <input
+                  id="photo-upload" type="file" accept="image/*"
+                  onChange={handlePhotoChange}
+                  style={{ display: 'none' }}
+                />
+                <p style={{ color: '#555', fontSize: '12px', marginTop: '8px' }}>
+                  JPG or PNG, max 5MB
+                </p>
+              </div>
+            </div>
 
             {/* Name */}
             <label style={labelStyle}>Full Name *</label>
