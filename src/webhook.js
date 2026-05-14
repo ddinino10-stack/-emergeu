@@ -8,15 +8,6 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
  
-function getRawBody(req) {
-  return new Promise((resolve, reject) => {
-    const chunks = [];
-    req.on('data', chunk => chunks.push(chunk));
-    req.on('end', () => resolve(Buffer.concat(chunks)));
-    req.on('error', reject);
-  });
-}
- 
 const getUserId = async (stripeObject) => {
   if (stripeObject.metadata?.supabase_user_id) {
     return stripeObject.metadata.supabase_user_id;
@@ -29,20 +20,19 @@ const getUserId = async (stripeObject) => {
   return user?.id || null;
 };
  
-async function handler(req, res) {
+module.exports = async function handler(req, res) {
+  // Allow all methods for debugging
+  res.setHeader('Allow', 'POST');
+ 
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ error: `Method ${req.method} not allowed` });
   }
  
-  const rawBody = await getRawBody(req);
-  const sig = req.headers['stripe-signature'];
+  // Use req.body directly (Vercel parses JSON automatically)
+  const event = req.body;
  
-  let event;
-  try {
-    event = stripe.webhooks.constructEvent(rawBody, sig, process.env.STRIPE_WEBHOOK_SECRET);
-  } catch (err) {
-    console.error('Webhook signature error:', err.message);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
+  if (!event || !event.type) {
+    return res.status(400).json({ error: 'Invalid event' });
   }
  
   const obj = event.data.object;
@@ -74,14 +64,9 @@ async function handler(req, res) {
         break;
       }
     }
-    res.status(200).json({ received: true });
+    return res.status(200).json({ received: true });
   } catch (err) {
     console.error('Webhook handler error:', err);
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: err.message });
   }
-}
- 
-// Config must be on the function itself, not set via module.exports.config
-handler.config = { api: { bodyParser: false } };
- 
-module.exports = handler;
+};
