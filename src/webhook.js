@@ -8,8 +8,6 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
  
-module.exports.config = { api: { bodyParser: false } };
- 
 function getRawBody(req) {
   return new Promise((resolve, reject) => {
     const chunks = [];
@@ -19,24 +17,19 @@ function getRawBody(req) {
   });
 }
  
-// Get user ID from metadata first, fall back to email lookup
 const getUserId = async (stripeObject) => {
-  // Try metadata first (works if they used checkout session)
   if (stripeObject.metadata?.supabase_user_id) {
     return stripeObject.metadata.supabase_user_id;
   }
- 
-  // Fall back to email lookup (works for payment link users)
   const customer = await stripe.customers.retrieve(stripeObject.customer);
   const email = customer.email;
   if (!email) return null;
- 
   const { data: { users } } = await supabase.auth.admin.listUsers();
   const user = users.find(u => u.email === email);
   return user?.id || null;
 };
  
-module.exports = async function handler(req, res) {
+async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -86,4 +79,9 @@ module.exports = async function handler(req, res) {
     console.error('Webhook handler error:', err);
     res.status(500).json({ error: err.message });
   }
-};
+}
+ 
+// Config must be on the function itself, not set via module.exports.config
+handler.config = { api: { bodyParser: false } };
+ 
+module.exports = handler;
