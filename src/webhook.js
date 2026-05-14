@@ -1,15 +1,15 @@
 // api/webhook.js
 const Stripe = require('stripe');
 const { createClient } = require('@supabase/supabase-js');
-
+ 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const supabase = createClient(
   process.env.REACT_APP_SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
-
+ 
 module.exports.config = { api: { bodyParser: false } };
-
+ 
 function getRawBody(req) {
   return new Promise((resolve, reject) => {
     const chunks = [];
@@ -18,41 +18,42 @@ function getRawBody(req) {
     req.on('error', reject);
   });
 }
-
+ 
 // Get user ID from metadata first, fall back to email lookup
 const getUserId = async (stripeObject) => {
   // Try metadata first (works if they used checkout session)
   if (stripeObject.metadata?.supabase_user_id) {
     return stripeObject.metadata.supabase_user_id;
   }
-
+ 
   // Fall back to email lookup (works for payment link users)
   const customer = await stripe.customers.retrieve(stripeObject.customer);
   const email = customer.email;
   if (!email) return null;
-
+ 
   const { data: { users } } = await supabase.auth.admin.listUsers();
   const user = users.find(u => u.email === email);
   return user?.id || null;
 };
-
+ 
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
-
+ 
   const rawBody = await getRawBody(req);
   const sig = req.headers['stripe-signature'];
-
+ 
   let event;
   try {
     event = stripe.webhooks.constructEvent(rawBody, sig, process.env.STRIPE_WEBHOOK_SECRET);
   } catch (err) {
+    console.error('Webhook signature error:', err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
-
+ 
   const obj = event.data.object;
-
+ 
   try {
     switch (event.type) {
       case 'checkout.session.completed': {
