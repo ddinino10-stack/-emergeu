@@ -19,6 +19,23 @@ function getRawBody(req) {
   });
 }
 
+// Get user ID from metadata first, fall back to email lookup
+const getUserId = async (stripeObject) => {
+  // Try metadata first (works if they used checkout session)
+  if (stripeObject.metadata?.supabase_user_id) {
+    return stripeObject.metadata.supabase_user_id;
+  }
+
+  // Fall back to email lookup (works for payment link users)
+  const customer = await stripe.customers.retrieve(stripeObject.customer);
+  const email = customer.email;
+  if (!email) return null;
+
+  const { data: { users } } = await supabase.auth.admin.listUsers();
+  const user = users.find(u => u.email === email);
+  return user?.id || null;
+};
+
 module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -36,35 +53,36 @@ module.exports = async function handler(req, res) {
 
   const obj = event.data.object;
 
-  const getUserId = async (subscription) => {
-    if (subscription.metadata?.supabase_user_id) return subscription.metadata.supabase_user_id;
-    const customer = await stripe.customers.retrieve(subscription.customer);
-    return customer.metadata?.supabase_user_id;
-  };
-
   try {
     switch (event.type) {
       case 'checkout.session.completed': {
         const sub = await stripe.subscriptions.retrieve(obj.subscription);
         const uid = await getUserId(sub);
-        if (uid) await supabase.from('profiles').update({
-          stripe_subscription_id: sub.id,
-          subscription_status: 'pro',
-          subscription_period_end: new Date(sub.current_period_end * 1000).toISOString(),
-        }).eq('id', uid);
+        if (uid) {
+          await supabase.from('subscriptions').upsert([{
+            user_id: uid,
+            plan: 'pro',
+            status: 'active',
+            created_at: new Date().toISOString()
+          }], { onConflict: 'user_id' });
+          console.log(`Pro unlocked for user ${uid}`);
+        }
         break;
       }
       case 'customer.subscription.deleted': {
         const uid = await getUserId(obj);
-        if (uid) await supabase.from('profiles').update({
-          subscription_status: 'free',
-          stripe_subscription_id: null,
-        }).eq('id', uid);
+        if (uid) {
+          await supabase.from('subscriptions')
+            .update({ status: 'cancelled' })
+            .eq('user_id', uid);
+          console.log(`Pro cancelled for user ${uid}`);
+        }
         break;
       }
     }
     res.status(200).json({ received: true });
   } catch (err) {
+    console.error('Webhook handler error:', err);
     res.status(500).json({ error: err.message });
   }
 };
