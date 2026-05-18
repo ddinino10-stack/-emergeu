@@ -1,13 +1,15 @@
 /* eslint-disable */
 import { useState, useEffect } from 'react';
 import { supabase } from './supabase';
- 
+
 function PTProfile({ user, onComplete }) {
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
   const [draftSaved, setDraftSaved] = useState(false);
   const [photoFile, setPhotoFile] = useState(null);
   const [photoPreview, setPhotoPreview] = useState(null);
+  const [profileStatus, setProfileStatus] = useState('draft'); // draft | pending | approved
+  const [isApproved, setIsApproved] = useState(false);
   const [profile, setProfile] = useState({
     name: user?.user_metadata?.name || '',
     bio: '',
@@ -18,13 +20,13 @@ function PTProfile({ user, onComplete }) {
     coaching_style: '',
     availability: ''
   });
- 
+
   const specialismOptions = [
     'Weight Loss', 'Muscle Building', 'Strength Training',
     'Cardio & Endurance', 'Sports Specific', 'Rehabilitation',
     'Nutrition Coaching', 'HIIT', 'Yoga & Flexibility', 'Senior Fitness'
   ];
- 
+
   useEffect(() => {
     const loadDraft = async () => {
       const { data } = await supabase
@@ -44,11 +46,19 @@ function PTProfile({ user, onComplete }) {
           availability: data.availability || ''
         });
         if (data.photo_url) setPhotoPreview(data.photo_url);
+        if (data.approved) {
+          setIsApproved(true);
+          setProfileStatus('approved');
+        } else if (data.status === 'pending') {
+          setProfileStatus('pending');
+        } else {
+          setProfileStatus('draft');
+        }
       }
     };
     loadDraft();
   }, []);
- 
+
   const toggleSpecialism = (item) => {
     setProfile(prev => ({
       ...prev,
@@ -57,14 +67,14 @@ function PTProfile({ user, onComplete }) {
         : [...prev.specialisms, item]
     }));
   };
- 
+
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
     setPhotoFile(file);
     setPhotoPreview(URL.createObjectURL(file));
   };
- 
+
   const uploadPhoto = async () => {
     if (!photoFile) return null;
     const fileExt = photoFile.name.split('.').pop();
@@ -76,7 +86,7 @@ function PTProfile({ user, onComplete }) {
     const { data } = supabase.storage.from('pt-photos').getPublicUrl(fileName);
     return data.publicUrl;
   };
- 
+
   const handleSave = async (status = 'pending') => {
     if (!profile.name || !profile.bio || !profile.location) return;
     setLoading(true);
@@ -87,6 +97,7 @@ function PTProfile({ user, onComplete }) {
       } catch (photoErr) {
         console.error('Photo upload failed:', photoErr);
       }
+
       const { error } = await supabase
         .from('pt_profiles')
         .upsert([{
@@ -99,14 +110,15 @@ function PTProfile({ user, onComplete }) {
           pricing_tier: profile.pricing_tier,
           coaching_style: profile.coaching_style,
           availability: profile.availability,
-          approved: false,
-          status: status,
+          approved: isApproved ? true : false,
+          status: isApproved ? 'approved' : status,
           ...(photoUrl && { photo_url: photoUrl })
         }]);
+
       if (error) {
         console.error(error);
       } else {
-        if (status === 'draft') {
+        if (isApproved || status === 'draft') {
           setDraftSaved(true);
           setTimeout(() => setDraftSaved(false), 3000);
         } else {
@@ -118,18 +130,18 @@ function PTProfile({ user, onComplete }) {
     }
     setLoading(false);
   };
- 
+
   const inputStyle = {
     width: '100%', padding: '14px', borderRadius: '12px',
     border: '1px solid #333', backgroundColor: '#1a1a1a',
     color: 'white', fontSize: '16px', marginBottom: '16px',
     boxSizing: 'border-box', outline: 'none'
   };
- 
+
   const labelStyle = {
     color: '#888', fontSize: '14px', marginBottom: '8px', display: 'block'
   };
- 
+
   return (
     <div style={{
       backgroundColor: '#0a0a0a', minHeight: '100vh',
@@ -148,9 +160,9 @@ function PTProfile({ user, onComplete }) {
           borderRadius: '20px', cursor: 'pointer', fontSize: '13px'
         }}>Back to Dashboard</button>
       </nav>
- 
+
       <div style={{ maxWidth: '700px', margin: '0 auto', padding: '40px 20px' }}>
- 
+
         {saved ? (
           <div style={{ textAlign: 'center', padding: '60px 20px' }}>
             <div style={{ fontSize: '60px', marginBottom: '20px' }}>🎉</div>
@@ -167,12 +179,45 @@ function PTProfile({ user, onComplete }) {
         ) : (
           <>
             <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '8px' }}>
-              Build Your <span style={{ color: '#FF6B00' }}>PT Profile</span>
+              {isApproved
+                ? <>Edit Your <span style={{ color: '#FF6B00' }}>PT Profile</span></>
+                : <>Build Your <span style={{ color: '#FF6B00' }}>PT Profile</span></>
+              }
             </h1>
-            <p style={{ color: '#888', marginBottom: '40px' }}>
+            <p style={{ color: '#888', marginBottom: '24px' }}>
               This is what clients will see when they're matched with you
             </p>
- 
+
+            {/* Approved banner */}
+            {isApproved && (
+              <div style={{
+                backgroundColor: 'rgba(0,255,0,0.08)', border: '1px solid #00cc44',
+                borderRadius: '12px', padding: '14px 20px', marginBottom: '24px',
+                display: 'flex', alignItems: 'center', gap: '10px'
+              }}>
+                <span style={{ fontSize: '20px' }}>✅</span>
+                <div>
+                  <p style={{ color: '#00cc44', fontWeight: 'bold', margin: 0 }}>Profile Live</p>
+                  <p style={{ color: '#888', fontSize: '13px', margin: 0 }}>Your profile is approved and visible to clients</p>
+                </div>
+              </div>
+            )}
+
+            {/* Pending banner */}
+            {profileStatus === 'pending' && !isApproved && (
+              <div style={{
+                backgroundColor: 'rgba(255,165,0,0.08)', border: '1px solid #FFA500',
+                borderRadius: '12px', padding: '14px 20px', marginBottom: '24px',
+                display: 'flex', alignItems: 'center', gap: '10px'
+              }}>
+                <span style={{ fontSize: '20px' }}>⏳</span>
+                <div>
+                  <p style={{ color: '#FFA500', fontWeight: 'bold', margin: 0 }}>Under Review</p>
+                  <p style={{ color: '#888', fontSize: '13px', margin: 0 }}>Your profile is being reviewed — usually within 24 hours</p>
+                </div>
+              </div>
+            )}
+
             {/* Photo Upload */}
             <label style={labelStyle}>Profile Photo</label>
             <div style={{ display: 'flex', alignItems: 'center', gap: '24px', marginBottom: '24px' }}>
@@ -207,7 +252,7 @@ function PTProfile({ user, onComplete }) {
                 </p>
               </div>
             </div>
- 
+
             {/* Name */}
             <label style={labelStyle}>Full Name *</label>
             <input
@@ -215,7 +260,7 @@ function PTProfile({ user, onComplete }) {
               onChange={e => setProfile({ ...profile, name: e.target.value })}
               style={inputStyle}
             />
- 
+
             {/* Bio */}
             <label style={labelStyle}>Your Bio * — Tell clients about yourself and your journey</label>
             <textarea
@@ -225,7 +270,7 @@ function PTProfile({ user, onComplete }) {
               rows={4}
               style={{ ...inputStyle, resize: 'vertical', fontFamily: 'Arial' }}
             />
- 
+
             {/* Location */}
             <label style={labelStyle}>Your Location *</label>
             <input
@@ -234,7 +279,7 @@ function PTProfile({ user, onComplete }) {
               onChange={e => setProfile({ ...profile, location: e.target.value })}
               style={inputStyle}
             />
- 
+
             {/* Specialisms */}
             <label style={labelStyle}>Your Specialisms — Select all that apply</label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '24px' }}>
@@ -248,7 +293,7 @@ function PTProfile({ user, onComplete }) {
                 }}>{item}</button>
               ))}
             </div>
- 
+
             {/* Training Type */}
             <label style={labelStyle}>How do you train clients?</label>
             <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
@@ -262,7 +307,7 @@ function PTProfile({ user, onComplete }) {
                 }}>{type}</button>
               ))}
             </div>
- 
+
             {/* Coaching Style */}
             <label style={labelStyle}>Your Coaching Style</label>
             <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
@@ -276,7 +321,7 @@ function PTProfile({ user, onComplete }) {
                 }}>{style}</button>
               ))}
             </div>
- 
+
             {/* Pricing Tier */}
             <label style={labelStyle}>Your Monthly Pricing</label>
             <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', flexWrap: 'wrap' }}>
@@ -290,7 +335,7 @@ function PTProfile({ user, onComplete }) {
                 }}>{price}</button>
               ))}
             </div>
- 
+
             {/* Availability */}
             <label style={labelStyle}>Your Availability</label>
             <input
@@ -300,51 +345,81 @@ function PTProfile({ user, onComplete }) {
               onChange={e => setProfile({ ...profile, availability: e.target.value })}
               style={inputStyle}
             />
- 
-            {/* Draft saved confirmation */}
+
+            {/* Save confirmation */}
             {draftSaved && (
               <div style={{
                 backgroundColor: 'rgba(255,107,0,0.1)', border: '1px solid #FF6B00',
                 borderRadius: '12px', padding: '14px', textAlign: 'center',
                 marginBottom: '16px', color: '#FF6B00', fontWeight: 'bold'
               }}>
-                ✅ Draft saved!
+                ✅ {isApproved ? 'Changes saved!' : 'Draft saved!'}
               </div>
             )}
- 
-            {/* Save Draft button */}
-            <button
-              onClick={() => handleSave('draft')} disabled={loading}
-              style={{
-                width: '100%', padding: '16px', borderRadius: '12px',
-                border: '2px solid #FF6B00', backgroundColor: 'transparent',
-                color: '#FF6B00', fontSize: '16px', fontWeight: 'bold',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                opacity: loading ? 0.7 : 1, marginBottom: '12px'
-              }}>
-              {loading ? 'Saving...' : 'Save as Draft'}
-            </button>
- 
-            {/* Submit button */}
-            <button
-              onClick={() => handleSave('pending')} disabled={loading}
-              style={{
-                width: '100%', padding: '18px', borderRadius: '12px', border: 'none',
-                backgroundColor: '#FF6B00', color: 'white', fontSize: '18px',
-                fontWeight: 'bold', cursor: loading ? 'not-allowed' : 'pointer',
-                opacity: loading ? 0.7 : 1
-              }}>
-              {loading ? 'Submitting...' : 'Submit Profile for Review 🚀'}
-            </button>
- 
-            <p style={{ color: '#555', textAlign: 'center', marginTop: '16px', fontSize: '13px' }}>
-              Your profile will be reviewed by EmergeU before going live — usually within 24 hours
-            </p>
+
+            {/* APPROVED — Save Changes only */}
+            {isApproved && (
+              <button
+                onClick={() => handleSave('approved')} disabled={loading}
+                style={{
+                  width: '100%', padding: '18px', borderRadius: '12px', border: 'none',
+                  backgroundColor: '#FF6B00', color: 'white', fontSize: '18px',
+                  fontWeight: 'bold', cursor: loading ? 'not-allowed' : 'pointer',
+                  opacity: loading ? 0.7 : 1
+                }}>
+                {loading ? 'Saving...' : 'Save Changes ✏️'}
+              </button>
+            )}
+
+            {/* PENDING — Save Draft only, no resubmit */}
+            {profileStatus === 'pending' && !isApproved && (
+              <button
+                onClick={() => handleSave('draft')} disabled={loading}
+                style={{
+                  width: '100%', padding: '16px', borderRadius: '12px',
+                  border: '2px solid #FF6B00', backgroundColor: 'transparent',
+                  color: '#FF6B00', fontSize: '16px', fontWeight: 'bold',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  opacity: loading ? 0.7 : 1
+                }}>
+                {loading ? 'Saving...' : 'Save Draft'}
+              </button>
+            )}
+
+            {/* DRAFT — Save Draft + Submit */}
+            {profileStatus === 'draft' && !isApproved && (
+              <>
+                <button
+                  onClick={() => handleSave('draft')} disabled={loading}
+                  style={{
+                    width: '100%', padding: '16px', borderRadius: '12px',
+                    border: '2px solid #FF6B00', backgroundColor: 'transparent',
+                    color: '#FF6B00', fontSize: '16px', fontWeight: 'bold',
+                    cursor: loading ? 'not-allowed' : 'pointer',
+                    opacity: loading ? 0.7 : 1, marginBottom: '12px'
+                  }}>
+                  {loading ? 'Saving...' : 'Save as Draft'}
+                </button>
+                <button
+                  onClick={() => handleSave('pending')} disabled={loading}
+                  style={{
+                    width: '100%', padding: '18px', borderRadius: '12px', border: 'none',
+                    backgroundColor: '#FF6B00', color: 'white', fontSize: '18px',
+                    fontWeight: 'bold', cursor: loading ? 'not-allowed' : 'pointer',
+                    opacity: loading ? 0.7 : 1
+                  }}>
+                  {loading ? 'Submitting...' : 'Submit Profile for Review 🚀'}
+                </button>
+                <p style={{ color: '#555', textAlign: 'center', marginTop: '16px', fontSize: '13px' }}>
+                  Your profile will be reviewed by EmergeU before going live — usually within 24 hours
+                </p>
+              </>
+            )}
           </>
         )}
       </div>
     </div>
   );
 }
- 
+
 export default PTProfile;
