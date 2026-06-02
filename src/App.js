@@ -15,6 +15,7 @@ import Emma from './Emma';
 import MealIdeas from './MealIdeas';
 import FoodTracker from './FoodTracker';
 import PTTools from './PTTools';
+import CookieBanner from './CookieBanner';
 
 
 
@@ -335,6 +336,7 @@ function App() {
       <div style={{ textAlign: 'center', padding: '30px', borderTop: '1px solid #222', color: '#555' }}>
         <p>© 2026 EmergeU — Become Unrecognisable</p>
       </div>
+      <CookieBanner />
     </div>
   );
 }
