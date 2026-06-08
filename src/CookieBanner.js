@@ -33,9 +33,7 @@ function CookieBanner() {
       <div style={{ flex: 1, minWidth: '250px' }}>
         <p style={{ color: '#ccc', margin: 0, fontSize: '14px', lineHeight: '1.6' }}>
           🍪 We use cookies to improve your experience on EmergeU. By continuing to use this site you accept our{' '}
-          <a href="/privacy-policy" style={{ color: '#FF6B00', textDecoration: 'underline' }}>
-            Privacy Policy
-          </a>.
+          <span style={{ color: '#FF6B00' }}>Privacy Policy</span>
         </p>
       </div>
       <div style={{ display: 'flex', gap: '12px', flexShrink: 0 }}>
