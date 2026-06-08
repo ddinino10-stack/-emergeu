@@ -16,8 +16,8 @@ import MealIdeas from './MealIdeas';
 import FoodTracker from './FoodTracker';
 import PTTools from './PTTools';
 import CookieBanner from './CookieBanner';
-
-
+import PrivacyPolicy from './PrivacyPolicy';
+import TermsAndConditions from './TermsAndConditions';
 
 function App() {
   const [showIntro, setShowIntro] = useState(true);
@@ -42,9 +42,8 @@ function App() {
   const [showMealIdeas, setShowMealIdeas] = useState(false);
   const [showFoodTracker, setShowFoodTracker] = useState(false);
   const [showPTTools, setShowPTTools] = useState(false);
-
-
-
+  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -114,6 +113,8 @@ function App() {
     </div>
   );
 
+  if (showPrivacyPolicy) return <PrivacyPolicy onBack={() => setShowPrivacyPolicy(false)} />;
+  if (showTerms) return <TermsAndConditions onBack={() => setShowTerms(false)} />;
   if (showChat) return <AiChat onComplete={() => { setShowChat(false); setShowMatches(true); }} />;
   if (showMatches) return <MatchResults user={user} onBack={() => setShowMatches(false)} />;
   if (showPTProfile) return <PTProfile user={user} onComplete={() => setShowPTProfile(false)} />;
@@ -126,8 +127,6 @@ function App() {
   if (showPTTools) return <PTTools user={user} onBack={() => setShowPTTools(false)} />;
   if (showSuccess) return <Success user={user} onContinue={() => { setShowSuccess(false); setShowSantiago(true); }} />;
   if (user) return <Dashboard user={user} onStartChat={() => setShowChat(true)} onBuildProfile={() => setShowPTProfile(true)} onOpenAdmin={() => setShowAdmin(true)} onOpenMessaging={() => setShowMessaging(true)} onOpenSantiago={() => setShowSantiago(true)} onOpenEmma={() => setShowEmma(true)} onOpenMealIdeas={() => setShowMealIdeas(true)} onOpenFoodTracker={() => setShowFoodTracker(true)} onOpenPTTools={() => setShowPTTools(true)} />;
-
-
 
   if (showForm && authMode === 'login') return (
     <Login onSwitch={() => setAuthMode('signup')} />
@@ -333,9 +332,26 @@ function App() {
       </div>
 
       {/* Footer */}
-      <div style={{ textAlign: 'center', padding: '30px', borderTop: '1px solid #222', color: '#555' }}>
-        <p>© 2026 EmergeU — Become Unrecognisable</p>
+      <div style={{
+        textAlign: 'center', padding: '30px 20px',
+        borderTop: '1px solid #222', color: '#555'
+      }}>
+        <p style={{ marginBottom: '12px' }}>© 2026 EmergeU — Become Unrecognisable</p>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', flexWrap: 'wrap' }}>
+          <button onClick={() => setShowPrivacyPolicy(true)} style={{
+            backgroundColor: 'transparent', color: '#555', border: 'none',
+            cursor: 'pointer', fontSize: '13px', textDecoration: 'underline'
+          }}>Privacy Policy</button>
+          <button onClick={() => setShowTerms(true)} style={{
+            backgroundColor: 'transparent', color: '#555', border: 'none',
+            cursor: 'pointer', fontSize: '13px', textDecoration: 'underline'
+          }}>Terms & Conditions</button>
+          <a href="mailto:emergeu@emergeu.co.uk" style={{ color: '#555', fontSize: '13px' }}>
+            emergeu@emergeu.co.uk
+          </a>
+        </div>
       </div>
+
       <CookieBanner />
     </div>
   );
