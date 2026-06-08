@@ -18,6 +18,8 @@ import PTTools from './PTTools';
 import CookieBanner from './CookieBanner';
 import PrivacyPolicy from './PrivacyPolicy';
 import TermsAndConditions from './TermsAndConditions';
+import SessionBooking from './SessionBooking';
+import PTBookings from './PTBookings';
 
 function App() {
   const [showIntro, setShowIntro] = useState(true);
@@ -44,15 +46,12 @@ function App() {
   const [showPTTools, setShowPTTools] = useState(false);
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
+  const [showSessionBooking, setShowSessionBooking] = useState(false);
+  const [showPTBookings, setShowPTBookings] = useState(false);
 
   useEffect(() => {
-    // Check URL on load for direct navigation
-    if (window.location.pathname === '/privacy-policy') {
-      setShowPrivacyPolicy(true);
-    }
-    if (window.location.pathname === '/terms') {
-      setShowTerms(true);
-    }
+    if (window.location.pathname === '/privacy-policy') setShowPrivacyPolicy(true);
+    if (window.location.pathname === '/terms') setShowTerms(true);
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
@@ -111,19 +110,11 @@ function App() {
       <img
         src={process.env.PUBLIC_URL + '/logo.jpg'}
         alt="EmergeU"
-        style={{
-          height: '200px',
-          borderRadius: '24px',
-          boxShadow: '0 0 80px rgba(255,107,0,0.5)',
-        }}
+        style={{ height: '200px', borderRadius: '24px', boxShadow: '0 0 80px rgba(255,107,0,0.5)' }}
       />
       <p style={{
-        color: '#FF6B00',
-        fontSize: '22px',
-        fontWeight: 'bold',
-        letterSpacing: '4px',
-        marginTop: '30px',
-        fontFamily: 'Arial, sans-serif'
+        color: '#FF6B00', fontSize: '22px', fontWeight: 'bold',
+        letterSpacing: '4px', marginTop: '30px', fontFamily: 'Arial, sans-serif'
       }}>BECOME UNRECOGNISABLE</p>
       {setTimeout(() => {
         setFadeOut(true);
@@ -143,6 +134,8 @@ function App() {
 
   if (showPrivacyPolicy) return <PrivacyPolicy onBack={closePrivacyPolicy} />;
   if (showTerms) return <TermsAndConditions onBack={closeTerms} />;
+  if (showSessionBooking) return <SessionBooking user={user} onBack={() => setShowSessionBooking(false)} />;
+  if (showPTBookings) return <PTBookings user={user} onBack={() => setShowPTBookings(false)} />;
   if (showChat) return <AiChat onComplete={() => { setShowChat(false); setShowMatches(true); }} />;
   if (showMatches) return <MatchResults user={user} onBack={() => setShowMatches(false)} />;
   if (showPTProfile) return <PTProfile user={user} onComplete={() => setShowPTProfile(false)} />;
@@ -154,15 +147,23 @@ function App() {
   if (showFoodTracker) return <FoodTracker user={user} onBack={() => setShowFoodTracker(false)} />;
   if (showPTTools) return <PTTools user={user} onBack={() => setShowPTTools(false)} />;
   if (showSuccess) return <Success user={user} onContinue={() => { setShowSuccess(false); setShowSantiago(true); }} />;
-  if (user) return <Dashboard user={user} onStartChat={() => setShowChat(true)} onBuildProfile={() => setShowPTProfile(true)} onOpenAdmin={() => setShowAdmin(true)} onOpenMessaging={() => setShowMessaging(true)} onOpenSantiago={() => setShowSantiago(true)} onOpenEmma={() => setShowEmma(true)} onOpenMealIdeas={() => setShowMealIdeas(true)} onOpenFoodTracker={() => setShowFoodTracker(true)} onOpenPTTools={() => setShowPTTools(true)} />;
+  if (user) return <Dashboard
+    user={user}
+    onStartChat={() => setShowChat(true)}
+    onBuildProfile={() => setShowPTProfile(true)}
+    onOpenAdmin={() => setShowAdmin(true)}
+    onOpenMessaging={() => setShowMessaging(true)}
+    onOpenSantiago={() => setShowSantiago(true)}
+    onOpenEmma={() => setShowEmma(true)}
+    onOpenMealIdeas={() => setShowMealIdeas(true)}
+    onOpenFoodTracker={() => setShowFoodTracker(true)}
+    onOpenPTTools={() => setShowPTTools(true)}
+    onOpenSessionBooking={() => setShowSessionBooking(true)}
+    onOpenPTBookings={() => setShowPTBookings(true)}
+  />;
 
-  if (showForm && authMode === 'login') return (
-    <Login onSwitch={() => setAuthMode('signup')} />
-  );
-
-  if (showForm && authMode === 'signup') return (
-    <Signup onSwitch={() => setAuthMode('login')} />
-  );
+  if (showForm && authMode === 'login') return <Login onSwitch={() => setAuthMode('signup')} />;
+  if (showForm && authMode === 'signup') return <Signup onSwitch={() => setAuthMode('login')} />;
 
   return (
     <div style={{ backgroundColor: '#0a0a0a', minHeight: '100vh', fontFamily: 'Arial, sans-serif', color: 'white' }}>
@@ -177,9 +178,9 @@ function App() {
         <img src={process.env.PUBLIC_URL + '/logo.jpg'} alt="EmergeU" style={{ height: '70px', borderRadius: '8px' }} />
         <div style={{ display: 'flex', gap: '12px' }}>
           <button onClick={() => { setShowForm(true); setAuthMode('login'); }} style={{
-            backgroundColor: 'transparent', color: 'white',
-            border: '2px solid #FF6B00', padding: '10px 20px',
-            borderRadius: '25px', cursor: 'pointer', fontSize: '15px', fontWeight: 'bold'
+            backgroundColor: 'transparent', color: 'white', border: '2px solid #FF6B00',
+            padding: '10px 20px', borderRadius: '25px', cursor: 'pointer',
+            fontSize: '15px', fontWeight: 'bold'
           }}>Sign In</button>
           <button onClick={() => { setShowForm(true); setAuthMode('signup'); }} style={{
             backgroundColor: '#FF6B00', color: 'white', border: 'none',
@@ -197,30 +198,22 @@ function App() {
         background: 'linear-gradient(135deg, #0a0a0a 0%, #1a0a00 50%, #0a0a0a 100%)'
       }}>
         <div style={{ position: 'relative', zIndex: 2, marginTop: '80px' }}>
-          <img
-            src={process.env.PUBLIC_URL + '/logo.jpg'}
-            alt="EmergeU"
-            style={{ height: '150px', borderRadius: '20px', marginBottom: '30px', boxShadow: '0 0 40px rgba(255,107,0,0.3)' }}
-          />
+          <img src={process.env.PUBLIC_URL + '/logo.jpg'} alt="EmergeU"
+            style={{ height: '150px', borderRadius: '20px', marginBottom: '30px', boxShadow: '0 0 40px rgba(255,107,0,0.3)' }} />
           <h1 style={{ fontSize: '64px', fontWeight: 'bold', margin: '0 0 20px 0', lineHeight: '1.1' }}>
             Find Your Perfect <span style={{ color: '#FF6B00' }}>Personal Trainer</span>
           </h1>
-          <p style={{
-            fontSize: '22px', color: '#ccc', maxWidth: '600px',
-            lineHeight: '1.6', margin: '0 auto 40px auto', textAlign: 'center'
-          }}>
+          <p style={{ fontSize: '22px', color: '#ccc', maxWidth: '600px', lineHeight: '1.6', margin: '0 auto 40px auto', textAlign: 'center' }}>
             AI powered matching that connects you with the right PT based on your goals, personality and lifestyle. Online, hybrid or in person.
           </p>
           <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center', marginTop: '20px' }}>
             <button onClick={() => { setShowForm(true); setAuthMode('signup'); }} style={{
               backgroundColor: '#FF6B00', color: 'white', border: 'none',
-              padding: '16px 40px', borderRadius: '30px', cursor: 'pointer',
-              fontSize: '18px', fontWeight: 'bold'
+              padding: '16px 40px', borderRadius: '30px', cursor: 'pointer', fontSize: '18px', fontWeight: 'bold'
             }}>Find My PT</button>
             <button onClick={() => { setShowForm(true); setAuthMode('signup'); }} style={{
               backgroundColor: 'transparent', color: 'white', border: '2px solid #FF6B00',
-              padding: '16px 40px', borderRadius: '30px', cursor: 'pointer',
-              fontSize: '18px', fontWeight: 'bold'
+              padding: '16px 40px', borderRadius: '30px', cursor: 'pointer', fontSize: '18px', fontWeight: 'bold'
             }}>Join As A PT</button>
           </div>
           <p style={{ color: '#FF6B00', marginTop: '40px', fontSize: '20px', fontWeight: 'bold', letterSpacing: '3px' }}>
@@ -256,10 +249,7 @@ function App() {
       </div>
 
       {/* Solution Section */}
-      <div style={{
-        padding: '80px 40px', textAlign: 'center',
-        background: 'linear-gradient(180deg, #0a0a0a 0%, #1a0a00 50%, #0a0a0a 100%)'
-      }}>
+      <div style={{ padding: '80px 40px', textAlign: 'center', background: 'linear-gradient(180deg, #0a0a0a 0%, #1a0a00 50%, #0a0a0a 100%)' }}>
         <h2 style={{ fontSize: '42px', fontWeight: 'bold', marginBottom: '20px' }}>
           EmergeU <span style={{ color: '#FF6B00' }}>fixes that</span>
         </h2>
@@ -309,11 +299,7 @@ function App() {
       </div>
 
       {/* For PTs Section */}
-      <div style={{
-        padding: '80px 40px', textAlign: 'center',
-        background: 'linear-gradient(180deg, #0a0a0a 0%, #1a0a00 50%, #0a0a0a 100%)',
-        borderTop: '1px solid #222'
-      }}>
+      <div style={{ padding: '80px 40px', textAlign: 'center', background: 'linear-gradient(180deg, #0a0a0a 0%, #1a0a00 50%, #0a0a0a 100%)', borderTop: '1px solid #222' }}>
         <h2 style={{ fontSize: '42px', fontWeight: 'bold', marginBottom: '20px' }}>
           Are you a <span style={{ color: '#FF6B00' }}>Personal Trainer?</span>
         </h2>
@@ -339,8 +325,7 @@ function App() {
         </div>
         <button onClick={() => { setShowForm(true); setAuthMode('signup'); }} style={{
           backgroundColor: '#FF6B00', color: 'white', border: 'none',
-          padding: '16px 40px', borderRadius: '30px', cursor: 'pointer',
-          fontSize: '18px', fontWeight: 'bold'
+          padding: '16px 40px', borderRadius: '30px', cursor: 'pointer', fontSize: '18px', fontWeight: 'bold'
         }}>Join As A PT 💪🏼</button>
       </div>
 
@@ -354,16 +339,12 @@ function App() {
         </p>
         <button onClick={() => { setShowForm(true); setAuthMode('signup'); }} style={{
           backgroundColor: '#FF6B00', color: 'white', border: 'none',
-          padding: '20px 60px', borderRadius: '30px', cursor: 'pointer',
-          fontSize: '22px', fontWeight: 'bold'
+          padding: '20px 60px', borderRadius: '30px', cursor: 'pointer', fontSize: '22px', fontWeight: 'bold'
         }}>Join the Waiting List 🔥</button>
       </div>
 
       {/* Footer */}
-      <div style={{
-        textAlign: 'center', padding: '30px 20px',
-        borderTop: '1px solid #222', color: '#555'
-      }}>
+      <div style={{ textAlign: 'center', padding: '30px 20px', borderTop: '1px solid #222', color: '#555' }}>
         <p style={{ marginBottom: '12px' }}>© 2026 EmergeU — Become Unrecognisable</p>
         <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', flexWrap: 'wrap' }}>
           <button onClick={openPrivacyPolicy} style={{

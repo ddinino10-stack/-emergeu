@@ -1,0 +1,198 @@
+/* eslint-disable */
+import { useState, useEffect } from 'react';
+import { supabase } from './supabase';
+
+function PTBookings({ user, onBack }) {
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('pending');
+
+  useEffect(() => {
+    fetchBookings();
+  }, []);
+
+  const fetchBookings = async () => {
+    const { data } = await supabase
+      .from('bookings')
+      .select('*')
+      .eq('pt_id', user.id)
+      .order('date', { ascending: true });
+    setBookings(data || []);
+    setLoading(false);
+  };
+
+  const confirmBooking = async (id) => {
+    await supabase.from('bookings').update({ status: 'confirmed' }).eq('id', id);
+    fetchBookings();
+  };
+
+  const declineBooking = async (id) => {
+    await supabase.from('bookings').update({ status: 'cancelled' }).eq('id', id);
+    fetchBookings();
+  };
+
+  const pending = bookings.filter(b => b.status === 'pending');
+  const upcoming = bookings.filter(b => b.status === 'confirmed' && new Date(b.date) >= new Date());
+  const past = bookings.filter(b => b.status === 'confirmed' && new Date(b.date) < new Date());
+
+  const tabStyle = (tab) => ({
+    padding: '12px 24px', cursor: 'pointer', fontWeight: 'bold',
+    fontSize: '15px', border: 'none',
+    borderBottom: `3px solid ${activeTab === tab ? '#FF6B00' : 'transparent'}`,
+    backgroundColor: 'transparent',
+    color: activeTab === tab ? '#FF6B00' : '#888'
+  });
+
+  return (
+    <div style={{ backgroundColor: '#0a0a0a', minHeight: '100vh', fontFamily: 'Arial, sans-serif', color: 'white' }}>
+      <nav style={{
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        padding: '20px 40px', borderBottom: '1px solid #222', backgroundColor: 'rgba(0,0,0,0.8)'
+      }}>
+        <img src={process.env.PUBLIC_URL + '/logo.jpg'} alt="EmergeU" style={{ height: '50px', borderRadius: '8px' }} />
+        <button onClick={onBack} style={{
+          backgroundColor: 'transparent', color: '#888', border: '1px solid #333',
+          padding: '8px 16px', borderRadius: '20px', cursor: 'pointer', fontSize: '13px'
+        }}>Back to Dashboard</button>
+      </nav>
+
+      <div style={{ maxWidth: '700px', margin: '0 auto', padding: '40px 20px' }}>
+        <h1 style={{ fontSize: '32px', fontWeight: 'bold', marginBottom: '8px' }}>
+          My <span style={{ color: '#FF6B00' }}>Bookings</span>
+        </h1>
+        <p style={{ color: '#888', marginBottom: '30px' }}>Manage your client session requests</p>
+
+        {/* Stats */}
+        <div style={{ display: 'flex', gap: '16px', marginBottom: '30px', flexWrap: 'wrap' }}>
+          {[
+            { label: 'Pending', value: pending.length, colour: '#FFA500' },
+            { label: 'Upcoming', value: upcoming.length, colour: '#00cc44' },
+            { label: 'Completed', value: past.length, colour: '#888' },
+          ].map((stat, i) => (
+            <div key={i} style={{
+              backgroundColor: '#111', border: '1px solid #222',
+              borderRadius: '12px', padding: '16px 24px', textAlign: 'center', flex: 1
+            }}>
+              <p style={{ color: stat.colour, fontSize: '28px', fontWeight: 'bold', margin: 0 }}>{stat.value}</p>
+              <p style={{ color: '#555', fontSize: '13px', margin: '4px 0 0 0' }}>{stat.label}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Tabs */}
+        <div style={{ display: 'flex', borderBottom: '1px solid #222', marginBottom: '24px' }}>
+          <button style={tabStyle('pending')} onClick={() => setActiveTab('pending')}>
+            Pending {pending.length > 0 && <span style={{
+              backgroundColor: '#FF6B00', color: 'white', borderRadius: '10px',
+              padding: '2px 8px', fontSize: '12px', marginLeft: '6px'
+            }}>{pending.length}</span>}
+          </button>
+          <button style={tabStyle('upcoming')} onClick={() => setActiveTab('upcoming')}>Upcoming</button>
+          <button style={tabStyle('past')} onClick={() => setActiveTab('past')}>Past</button>
+        </div>
+
+        {loading ? (
+          <p style={{ color: '#888', textAlign: 'center' }}>Loading bookings...</p>
+        ) : (
+          <>
+            {/* Pending Tab */}
+            {activeTab === 'pending' && (
+              pending.length === 0 ? (
+                <div style={{
+                  backgroundColor: '#111', border: '1px solid #222', borderRadius: '16px',
+                  padding: '40px', textAlign: 'center'
+                }}>
+                  <p style={{ color: '#555', margin: 0 }}>No pending requests 🎉</p>
+                </div>
+              ) : (
+                pending.map((b, i) => (
+                  <div key={i} style={{
+                    backgroundColor: '#111', border: '1px solid #333',
+                    borderRadius: '16px', padding: '24px', marginBottom: '16px'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+                      <div>
+                        <h3 style={{ color: '#FF6B00', margin: '0 0 8px 0' }}>{b.session_type}</h3>
+                        <p style={{ color: '#ccc', margin: '0 0 4px 0' }}>👤 {b.client_name}</p>
+                        <p style={{ color: '#888', margin: '0 0 4px 0' }}>📅 {new Date(b.date).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} at {b.time}</p>
+                        {b.notes && <p style={{ color: '#555', fontSize: '13px', margin: '8px 0 0 0' }}>📝 {b.notes}</p>}
+                      </div>
+                      <div style={{ display: 'flex', gap: '10px' }}>
+                        <button onClick={() => confirmBooking(b.id)} style={{
+                          backgroundColor: '#FF6B00', color: 'white', border: 'none',
+                          padding: '10px 20px', borderRadius: '20px', cursor: 'pointer',
+                          fontWeight: 'bold', fontSize: '14px'
+                        }}>✅ Confirm</button>
+                        <button onClick={() => declineBooking(b.id)} style={{
+                          backgroundColor: 'transparent', color: '#ff4444',
+                          border: '2px solid #ff4444', padding: '10px 20px',
+                          borderRadius: '20px', cursor: 'pointer', fontSize: '14px'
+                        }}>❌ Decline</button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )
+            )}
+
+            {/* Upcoming Tab */}
+            {activeTab === 'upcoming' && (
+              upcoming.length === 0 ? (
+                <div style={{
+                  backgroundColor: '#111', border: '1px solid #222', borderRadius: '16px',
+                  padding: '40px', textAlign: 'center'
+                }}>
+                  <p style={{ color: '#555', margin: 0 }}>No upcoming sessions</p>
+                </div>
+              ) : (
+                upcoming.map((b, i) => (
+                  <div key={i} style={{
+                    backgroundColor: '#111', border: '1px solid #222',
+                    borderRadius: '16px', padding: '24px', marginBottom: '16px'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                      <div>
+                        <h3 style={{ color: '#FF6B00', margin: '0 0 8px 0' }}>{b.session_type}</h3>
+                        <p style={{ color: '#ccc', margin: '0 0 4px 0' }}>👤 {b.client_name}</p>
+                        <p style={{ color: '#888', margin: 0 }}>📅 {new Date(b.date).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} at {b.time}</p>
+                      </div>
+                      <span style={{
+                        backgroundColor: 'rgba(0,204,68,0.1)', border: '1px solid #00cc44',
+                        color: '#00cc44', padding: '6px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: 'bold'
+                      }}>✅ Confirmed</span>
+                    </div>
+                  </div>
+                ))
+              )
+            )}
+
+            {/* Past Tab */}
+            {activeTab === 'past' && (
+              past.length === 0 ? (
+                <div style={{
+                  backgroundColor: '#111', border: '1px solid #222', borderRadius: '16px',
+                  padding: '40px', textAlign: 'center'
+                }}>
+                  <p style={{ color: '#555', margin: 0 }}>No past sessions yet</p>
+                </div>
+              ) : (
+                past.map((b, i) => (
+                  <div key={i} style={{
+                    backgroundColor: '#111', border: '1px solid #1a1a1a',
+                    borderRadius: '16px', padding: '24px', marginBottom: '16px', opacity: 0.6
+                  }}>
+                    <h3 style={{ color: '#888', margin: '0 0 8px 0' }}>{b.session_type}</h3>
+                    <p style={{ color: '#666', margin: '0 0 4px 0' }}>👤 {b.client_name}</p>
+                    <p style={{ color: '#555', margin: 0 }}>📅 {new Date(b.date).toLocaleDateString('en-GB')} at {b.time}</p>
+                  </div>
+                ))
+              )
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default PTBookings;

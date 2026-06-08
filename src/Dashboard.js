@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
 
-function Dashboard({ user, onStartChat, onBuildProfile, onOpenAdmin, onOpenMessaging, onOpenSantiago, onOpenEmma, onOpenMealIdeas, onOpenFoodTracker, onOpenPTTools }) {
+function Dashboard({ user, onStartChat, onBuildProfile, onOpenAdmin, onOpenMessaging, onOpenSantiago, onOpenEmma, onOpenMealIdeas, onOpenFoodTracker, onOpenPTTools, onOpenSessionBooking, onOpenPTBookings }) {
   const handleLogout = async () => {
     await supabase.auth.signOut();
   };
@@ -50,30 +50,29 @@ function Dashboard({ user, onStartChat, onBuildProfile, onOpenAdmin, onOpenMessa
         </h1>
         <p style={{ color: '#888', fontSize: '18px', marginBottom: '60px' }}>
           {userType === 'pt'
-            ? 'Your PT dashboard is being built. Check back soon!'
-            : 'Your client dashboard is being built. Check back soon!'}
+            ? 'Manage your clients, bookings and tools'
+            : 'Your fitness journey starts here'}
         </p>
 
         <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap' }}>
           {(userType === 'pt' ? [
             { icon: '👤', title: 'My Profile', desc: 'Build your PT profile', action: onBuildProfile },
-            { icon: '👥', title: 'My Clients', desc: 'Coming soon' },
-            { icon: '💰', title: 'Earnings', desc: 'Coming soon' },
-            { icon: '⭐', title: 'Reviews', desc: 'Coming soon' },
+            { icon: '📅', title: 'My Bookings', desc: 'Manage session requests', action: onOpenPTBookings },
+            { icon: '💬', title: 'Messages', desc: 'Chat with your clients', action: onOpenMessaging },
             { icon: '🍔', title: 'Meal Ideas', desc: 'Generate meal ideas', action: onOpenMealIdeas },
             { icon: '🍎', title: 'Food Tracker', desc: 'Track your daily nutrition', action: onOpenFoodTracker },
-            { icon: '🤖', title: 'AI Tools', desc: 'Fitness plans, meal plans & notes', action: onOpenPTTools }
-
+            { icon: '🤖', title: 'AI Tools', desc: 'Fitness plans, meal plans & notes', action: onOpenPTTools },
+            { icon: '💰', title: 'Earnings', desc: 'Coming soon' },
+            { icon: '⭐', title: 'Reviews', desc: 'Coming soon' },
           ] : [
             { icon: '🤖', title: 'Find My PT', desc: 'Start AI matching now!', action: onStartChat },
             { icon: '🏋️', title: 'Santiago AI PT', desc: 'Your 24/7 AI fitness coach', action: onOpenSantiago },
             { icon: '👩', title: 'Emma AI PT', desc: 'Your supportive AI coach', action: onOpenEmma },
-            { icon: '🍔', title: 'Meal Ideas', desc: 'AI meal inspiration', action: onOpenMealIdeas },
-            { icon: '📅', title: 'My Sessions', desc: 'Coming soon' },
-            { icon: '📊', title: 'My Progress', desc: 'Coming soon' },
+            { icon: '📅', title: 'My Sessions', desc: 'Book and manage sessions', action: onOpenSessionBooking },
             { icon: '💬', title: 'Messages', desc: 'Chat with your PT', action: onOpenMessaging },
-            { icon: '🍎', title: 'Food Tracker', desc: 'Track your daily nutrition', action: onOpenFoodTracker }
-
+            { icon: '🍔', title: 'Meal Ideas', desc: 'AI meal inspiration', action: onOpenMealIdeas },
+            { icon: '🍎', title: 'Food Tracker', desc: 'Track your daily nutrition', action: onOpenFoodTracker },
+            { icon: '📊', title: 'My Progress', desc: 'Coming soon' },
           ]).map((item, i) => (
             <div key={i} onClick={item.action || null} style={{
               backgroundColor: '#111', border: '1px solid #222',
