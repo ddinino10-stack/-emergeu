@@ -1,26 +1,26 @@
 /* eslint-disable */
 import { useState, useEffect } from 'react';
- 
-function CookieBanner() {
+
+function CookieBanner({ onOpenPrivacy }) {
   const [visible, setVisible] = useState(false);
- 
+
   useEffect(() => {
     const consent = localStorage.getItem('cookieConsent');
     if (!consent) setVisible(true);
   }, []);
- 
+
   const handleAccept = () => {
     localStorage.setItem('cookieConsent', 'accepted');
     setVisible(false);
   };
- 
+
   const handleDecline = () => {
     localStorage.setItem('cookieConsent', 'declined');
     setVisible(false);
   };
- 
+
   if (!visible) return null;
- 
+
   return (
     <div style={{
       position: 'fixed', bottom: 0, left: 0, right: 0,
@@ -33,7 +33,11 @@ function CookieBanner() {
       <div style={{ flex: 1, minWidth: '250px' }}>
         <p style={{ color: '#ccc', margin: 0, fontSize: '14px', lineHeight: '1.6' }}>
           🍪 We use cookies to improve your experience on EmergeU. By continuing to use this site you accept our{' '}
-          <span style={{ color: '#FF6B00' }}>Privacy Policy</span>
+          <span
+            onClick={onOpenPrivacy}
+            style={{ color: '#FF6B00', textDecoration: 'underline', cursor: 'pointer' }}>
+            Privacy Policy
+          </span>.
         </p>
       </div>
       <div style={{ display: 'flex', gap: '12px', flexShrink: 0 }}>
@@ -61,5 +65,5 @@ function CookieBanner() {
     </div>
   );
 }
- 
+
 export default CookieBanner;

@@ -46,6 +46,14 @@ function App() {
   const [showTerms, setShowTerms] = useState(false);
 
   useEffect(() => {
+    // Check URL on load for direct navigation
+    if (window.location.pathname === '/privacy-policy') {
+      setShowPrivacyPolicy(true);
+    }
+    if (window.location.pathname === '/terms') {
+      setShowTerms(true);
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setCheckingAuth(false);
@@ -55,6 +63,26 @@ function App() {
     });
     return () => subscription.unsubscribe();
   }, []);
+
+  const openPrivacyPolicy = () => {
+    window.history.pushState({}, '', '/privacy-policy');
+    setShowPrivacyPolicy(true);
+  };
+
+  const openTerms = () => {
+    window.history.pushState({}, '', '/terms');
+    setShowTerms(true);
+  };
+
+  const closePrivacyPolicy = () => {
+    window.history.pushState({}, '', '/');
+    setShowPrivacyPolicy(false);
+  };
+
+  const closeTerms = () => {
+    window.history.pushState({}, '', '/');
+    setShowTerms(false);
+  };
 
   const handleSubmit = async () => {
     if (!name || !email) return;
@@ -113,8 +141,8 @@ function App() {
     </div>
   );
 
-  if (showPrivacyPolicy) return <PrivacyPolicy onBack={() => setShowPrivacyPolicy(false)} />;
-  if (showTerms) return <TermsAndConditions onBack={() => setShowTerms(false)} />;
+  if (showPrivacyPolicy) return <PrivacyPolicy onBack={closePrivacyPolicy} />;
+  if (showTerms) return <TermsAndConditions onBack={closeTerms} />;
   if (showChat) return <AiChat onComplete={() => { setShowChat(false); setShowMatches(true); }} />;
   if (showMatches) return <MatchResults user={user} onBack={() => setShowMatches(false)} />;
   if (showPTProfile) return <PTProfile user={user} onComplete={() => setShowPTProfile(false)} />;
@@ -338,11 +366,11 @@ function App() {
       }}>
         <p style={{ marginBottom: '12px' }}>© 2026 EmergeU — Become Unrecognisable</p>
         <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', flexWrap: 'wrap' }}>
-          <button onClick={() => setShowPrivacyPolicy(true)} style={{
+          <button onClick={openPrivacyPolicy} style={{
             backgroundColor: 'transparent', color: '#555', border: 'none',
             cursor: 'pointer', fontSize: '13px', textDecoration: 'underline'
           }}>Privacy Policy</button>
-          <button onClick={() => setShowTerms(true)} style={{
+          <button onClick={openTerms} style={{
             backgroundColor: 'transparent', color: '#555', border: 'none',
             cursor: 'pointer', fontSize: '13px', textDecoration: 'underline'
           }}>Terms & Conditions</button>
@@ -352,7 +380,7 @@ function App() {
         </div>
       </div>
 
-      <CookieBanner />
+      <CookieBanner onOpenPrivacy={openPrivacyPolicy} />
     </div>
   );
 }
