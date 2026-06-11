@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
 
-function Dashboard({ user, onStartChat, onBuildProfile, onOpenAdmin, onOpenMessaging, onOpenSantiago, onOpenEmma, onOpenMealIdeas, onOpenFoodTracker, onOpenPTTools, onOpenSessionBooking, onOpenPTBookings }) {
+function Dashboard({ user, onStartChat, onBuildProfile, onOpenAdmin, onOpenMessaging, onOpenSantiago, onOpenEmma, onOpenMealIdeas, onOpenFoodTracker, onOpenPTTools, onOpenSessionBooking, onOpenPTBookings, onOpenProgress }) {
   const handleLogout = async () => {
     await supabase.auth.signOut();
   };
@@ -13,17 +13,12 @@ function Dashboard({ user, onStartChat, onBuildProfile, onOpenAdmin, onOpenMessa
       backgroundColor: '#0a0a0a', minHeight: '100vh',
       fontFamily: 'Arial, sans-serif', color: 'white'
     }}>
-      {/* Nav */}
       <nav style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         padding: '20px 40px', borderBottom: '1px solid #222',
         backgroundColor: 'rgba(0,0,0,0.8)'
       }}>
-        <img
-          src={process.env.PUBLIC_URL + '/logo.jpg'}
-          alt="EmergeU"
-          style={{ height: '50px', borderRadius: '8px' }}
-        />
+        <img src={process.env.PUBLIC_URL + '/logo.jpg'} alt="EmergeU" style={{ height: '50px', borderRadius: '8px' }} />
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
           <span style={{ color: '#888' }}>
             {userType === 'pt' ? '💪 PT Account' : '👤 Client Account'}
@@ -43,15 +38,12 @@ function Dashboard({ user, onStartChat, onBuildProfile, onOpenAdmin, onOpenMessa
         </div>
       </nav>
 
-      {/* Dashboard Content */}
       <div style={{ padding: '60px 40px', textAlign: 'center' }}>
         <h1 style={{ fontSize: '42px', marginBottom: '16px' }}>
           Welcome, <span style={{ color: '#FF6B00' }}>{userName}!</span> 🔥
         </h1>
         <p style={{ color: '#888', fontSize: '18px', marginBottom: '60px' }}>
-          {userType === 'pt'
-            ? 'Manage your clients, bookings and tools'
-            : 'Your fitness journey starts here'}
+          {userType === 'pt' ? 'Manage your clients, bookings and tools' : 'Your fitness journey starts here'}
         </p>
 
         <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap' }}>
@@ -72,7 +64,7 @@ function Dashboard({ user, onStartChat, onBuildProfile, onOpenAdmin, onOpenMessa
             { icon: '💬', title: 'Messages', desc: 'Chat with your PT', action: onOpenMessaging },
             { icon: '🍔', title: 'Meal Ideas', desc: 'AI meal inspiration', action: onOpenMealIdeas },
             { icon: '🍎', title: 'Food Tracker', desc: 'Track your daily nutrition', action: onOpenFoodTracker },
-            { icon: '📊', title: 'My Progress', desc: 'Coming soon' },
+            { icon: '📊', title: 'My Progress', desc: 'Track your transformation', action: onOpenProgress },
           ]).map((item, i) => (
             <div key={i} onClick={item.action || null} style={{
               backgroundColor: '#111', border: '1px solid #222',

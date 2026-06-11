@@ -20,6 +20,7 @@ import PrivacyPolicy from './PrivacyPolicy';
 import TermsAndConditions from './TermsAndConditions';
 import SessionBooking from './SessionBooking';
 import PTBookings from './PTBookings';
+import ProgressTracking from './ProgressTracking';
 
 function App() {
   const [showIntro, setShowIntro] = useState(true);
@@ -48,6 +49,7 @@ function App() {
   const [showTerms, setShowTerms] = useState(false);
   const [showSessionBooking, setShowSessionBooking] = useState(false);
   const [showPTBookings, setShowPTBookings] = useState(false);
+  const [showProgress, setShowProgress] = useState(false);
 
   useEffect(() => {
     if (window.location.pathname === '/privacy-policy') setShowPrivacyPolicy(true);
@@ -87,9 +89,7 @@ function App() {
     if (!name || !email) return;
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('waiting_list')
-        .insert([{ name, email, type }]);
+      const { error } = await supabase.from('waiting_list').insert([{ name, email, type }]);
       if (error) console.error('Supabase error:', error);
       setSubmitted(true);
     } catch (err) {
@@ -101,39 +101,28 @@ function App() {
 
   if (showIntro) return (
     <div style={{
-      backgroundColor: '#000', minHeight: '100vh',
-      display: 'flex', flexDirection: 'column',
-      alignItems: 'center', justifyContent: 'center',
-      overflow: 'hidden', opacity: fadeOut ? 0 : 1,
-      transition: 'opacity 1.5s ease'
+      backgroundColor: '#000', minHeight: '100vh', display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
+      opacity: fadeOut ? 0 : 1, transition: 'opacity 1.5s ease'
     }}>
-      <img
-        src={process.env.PUBLIC_URL + '/logo.jpg'}
-        alt="EmergeU"
-        style={{ height: '200px', borderRadius: '24px', boxShadow: '0 0 80px rgba(255,107,0,0.5)' }}
-      />
-      <p style={{
-        color: '#FF6B00', fontSize: '22px', fontWeight: 'bold',
-        letterSpacing: '4px', marginTop: '30px', fontFamily: 'Arial, sans-serif'
-      }}>BECOME UNRECOGNISABLE</p>
-      {setTimeout(() => {
-        setFadeOut(true);
-        setTimeout(() => setShowIntro(false), 1500);
-      }, 2500) && null}
+      <img src={process.env.PUBLIC_URL + '/logo.jpg'} alt="EmergeU"
+        style={{ height: '200px', borderRadius: '24px', boxShadow: '0 0 80px rgba(255,107,0,0.5)' }} />
+      <p style={{ color: '#FF6B00', fontSize: '22px', fontWeight: 'bold', letterSpacing: '4px', marginTop: '30px', fontFamily: 'Arial, sans-serif' }}>
+        BECOME UNRECOGNISABLE
+      </p>
+      {setTimeout(() => { setFadeOut(true); setTimeout(() => setShowIntro(false), 1500); }, 2500) && null}
     </div>
   );
 
   if (checkingAuth) return (
-    <div style={{
-      backgroundColor: '#0a0a0a', minHeight: '100vh', display: 'flex',
-      alignItems: 'center', justifyContent: 'center'
-    }}>
+    <div style={{ backgroundColor: '#0a0a0a', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ color: '#FF6B00', fontSize: '24px' }}>Loading EmergeU...</div>
     </div>
   );
 
   if (showPrivacyPolicy) return <PrivacyPolicy onBack={closePrivacyPolicy} />;
   if (showTerms) return <TermsAndConditions onBack={closeTerms} />;
+  if (showProgress) return <ProgressTracking user={user} onBack={() => setShowProgress(false)} />;
   if (showSessionBooking) return <SessionBooking user={user} onBack={() => setShowSessionBooking(false)} />;
   if (showPTBookings) return <PTBookings user={user} onBack={() => setShowPTBookings(false)} />;
   if (showChat) return <AiChat onComplete={() => { setShowChat(false); setShowMatches(true); }} />;
@@ -147,6 +136,7 @@ function App() {
   if (showFoodTracker) return <FoodTracker user={user} onBack={() => setShowFoodTracker(false)} />;
   if (showPTTools) return <PTTools user={user} onBack={() => setShowPTTools(false)} />;
   if (showSuccess) return <Success user={user} onContinue={() => { setShowSuccess(false); setShowSantiago(true); }} />;
+
   if (user) return <Dashboard
     user={user}
     onStartChat={() => setShowChat(true)}
@@ -160,6 +150,7 @@ function App() {
     onOpenPTTools={() => setShowPTTools(true)}
     onOpenSessionBooking={() => setShowSessionBooking(true)}
     onOpenPTBookings={() => setShowPTBookings(true)}
+    onOpenProgress={() => setShowProgress(true)}
   />;
 
   if (showForm && authMode === 'login') return <Login onSwitch={() => setAuthMode('signup')} />;
@@ -168,7 +159,6 @@ function App() {
   return (
     <div style={{ backgroundColor: '#0a0a0a', minHeight: '100vh', fontFamily: 'Arial, sans-serif', color: 'white' }}>
 
-      {/* Navigation */}
       <nav style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         padding: '20px 40px', borderBottom: '1px solid #222', position: 'fixed',
@@ -179,23 +169,19 @@ function App() {
         <div style={{ display: 'flex', gap: '12px' }}>
           <button onClick={() => { setShowForm(true); setAuthMode('login'); }} style={{
             backgroundColor: 'transparent', color: 'white', border: '2px solid #FF6B00',
-            padding: '10px 20px', borderRadius: '25px', cursor: 'pointer',
-            fontSize: '15px', fontWeight: 'bold'
+            padding: '10px 20px', borderRadius: '25px', cursor: 'pointer', fontSize: '15px', fontWeight: 'bold'
           }}>Sign In</button>
           <button onClick={() => { setShowForm(true); setAuthMode('signup'); }} style={{
             backgroundColor: '#FF6B00', color: 'white', border: 'none',
-            padding: '10px 20px', borderRadius: '25px', cursor: 'pointer',
-            fontSize: '15px', fontWeight: 'bold'
+            padding: '10px 20px', borderRadius: '25px', cursor: 'pointer', fontSize: '15px', fontWeight: 'bold'
           }}>Join Waiting List</button>
         </div>
       </nav>
 
-      {/* Hero Section */}
       <div style={{
-        position: 'relative', minHeight: '100vh', display: 'flex',
-        flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        textAlign: 'center', padding: '0 20px', overflow: 'hidden',
-        background: 'linear-gradient(135deg, #0a0a0a 0%, #1a0a00 50%, #0a0a0a 100%)'
+        position: 'relative', minHeight: '100vh', display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '0 20px',
+        overflow: 'hidden', background: 'linear-gradient(135deg, #0a0a0a 0%, #1a0a00 50%, #0a0a0a 100%)'
       }}>
         <div style={{ position: 'relative', zIndex: 2, marginTop: '80px' }}>
           <img src={process.env.PUBLIC_URL + '/logo.jpg'} alt="EmergeU"
@@ -203,7 +189,7 @@ function App() {
           <h1 style={{ fontSize: '64px', fontWeight: 'bold', margin: '0 0 20px 0', lineHeight: '1.1' }}>
             Find Your Perfect <span style={{ color: '#FF6B00' }}>Personal Trainer</span>
           </h1>
-          <p style={{ fontSize: '22px', color: '#ccc', maxWidth: '600px', lineHeight: '1.6', margin: '0 auto 40px auto', textAlign: 'center' }}>
+          <p style={{ fontSize: '22px', color: '#ccc', maxWidth: '600px', lineHeight: '1.6', margin: '0 auto 40px auto' }}>
             AI powered matching that connects you with the right PT based on your goals, personality and lifestyle. Online, hybrid or in person.
           </p>
           <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center', marginTop: '20px' }}>
@@ -222,7 +208,6 @@ function App() {
         </div>
       </div>
 
-      {/* Problem Section */}
       <div style={{ padding: '80px 40px', textAlign: 'center', borderTop: '1px solid #222' }}>
         <h2 style={{ fontSize: '42px', fontWeight: 'bold', marginBottom: '20px' }}>
           Finding the right PT is <span style={{ color: '#FF6B00' }}>broken</span>
@@ -237,10 +222,7 @@ function App() {
             { icon: '🤷', problem: 'No idea how to find a PT you can trust' },
             { icon: '❌', problem: 'Personality clashes that kill motivation' }
           ].map((item, i) => (
-            <div key={i} style={{
-              backgroundColor: '#111', border: '1px solid #222', borderRadius: '16px',
-              padding: '30px', width: '200px', textAlign: 'center'
-            }}>
+            <div key={i} style={{ backgroundColor: '#111', border: '1px solid #222', borderRadius: '16px', padding: '30px', width: '200px', textAlign: 'center' }}>
               <div style={{ fontSize: '40px', marginBottom: '16px' }}>{item.icon}</div>
               <p style={{ color: '#888', lineHeight: '1.5', margin: 0 }}>{item.problem}</p>
             </div>
@@ -248,7 +230,6 @@ function App() {
         </div>
       </div>
 
-      {/* Solution Section */}
       <div style={{ padding: '80px 40px', textAlign: 'center', background: 'linear-gradient(180deg, #0a0a0a 0%, #1a0a00 50%, #0a0a0a 100%)' }}>
         <h2 style={{ fontSize: '42px', fontWeight: 'bold', marginBottom: '20px' }}>
           EmergeU <span style={{ color: '#FF6B00' }}>fixes that</span>
@@ -263,10 +244,7 @@ function App() {
             { icon: '📍', title: 'Online or In Person', desc: 'Train online, hybrid or find a local PT near you' },
             { icon: '🚀', title: 'Transform', desc: 'Real results from real trainers who care about your journey' }
           ].map((feature, i) => (
-            <div key={i} style={{
-              backgroundColor: '#111', border: '1px solid #333', borderRadius: '16px',
-              padding: '30px', width: '220px', textAlign: 'center'
-            }}>
+            <div key={i} style={{ backgroundColor: '#111', border: '1px solid #333', borderRadius: '16px', padding: '30px', width: '220px', textAlign: 'center' }}>
               <div style={{ fontSize: '40px', marginBottom: '16px' }}>{feature.icon}</div>
               <h3 style={{ color: '#FF6B00', marginBottom: '10px' }}>{feature.title}</h3>
               <p style={{ color: '#888', lineHeight: '1.5', margin: 0 }}>{feature.desc}</p>
@@ -275,7 +253,6 @@ function App() {
         </div>
       </div>
 
-      {/* How It Works */}
       <div style={{ padding: '80px 40px', textAlign: 'center', borderTop: '1px solid #222' }}>
         <h2 style={{ fontSize: '42px', fontWeight: 'bold', marginBottom: '60px' }}>
           How <span style={{ color: '#FF6B00' }}>EmergeU</span> works
@@ -286,10 +263,7 @@ function App() {
             { step: '02', title: 'Meet your matches', desc: 'We show you your top 3 PT matches with a clear explanation of why each one is right for you.' },
             { step: '03', title: 'Start your journey', desc: 'Choose your PT, pick your plan and begin your transformation. Everything happens inside EmergeU.' }
           ].map((item, i) => (
-            <div key={i} style={{
-              backgroundColor: '#111', border: '1px solid #222', borderRadius: '16px',
-              padding: '40px 30px', width: '260px', textAlign: 'center'
-            }}>
+            <div key={i} style={{ backgroundColor: '#111', border: '1px solid #222', borderRadius: '16px', padding: '40px 30px', width: '260px', textAlign: 'center' }}>
               <div style={{ fontSize: '48px', fontWeight: 'bold', color: 'rgba(255,107,0,0.3)', marginBottom: '16px' }}>{item.step}</div>
               <h3 style={{ color: '#FF6B00', marginBottom: '12px', fontSize: '20px' }}>{item.title}</h3>
               <p style={{ color: '#888', lineHeight: '1.6', margin: 0 }}>{item.desc}</p>
@@ -298,7 +272,6 @@ function App() {
         </div>
       </div>
 
-      {/* For PTs Section */}
       <div style={{ padding: '80px 40px', textAlign: 'center', background: 'linear-gradient(180deg, #0a0a0a 0%, #1a0a00 50%, #0a0a0a 100%)', borderTop: '1px solid #222' }}>
         <h2 style={{ fontSize: '42px', fontWeight: 'bold', marginBottom: '20px' }}>
           Are you a <span style={{ color: '#FF6B00' }}>Personal Trainer?</span>
@@ -313,10 +286,7 @@ function App() {
             { icon: '⭐', title: 'Build your reputation', desc: 'Verified reviews from real clients help you stand out and grow faster' },
             { icon: '🌍', title: 'Work from anywhere', desc: 'Online, in person or hybrid — you choose how you work and where' }
           ].map((feature, i) => (
-            <div key={i} style={{
-              backgroundColor: '#111', border: '1px solid #333', borderRadius: '16px',
-              padding: '30px', width: '220px', textAlign: 'center'
-            }}>
+            <div key={i} style={{ backgroundColor: '#111', border: '1px solid #333', borderRadius: '16px', padding: '30px', width: '220px', textAlign: 'center' }}>
               <div style={{ fontSize: '40px', marginBottom: '16px' }}>{feature.icon}</div>
               <h3 style={{ color: '#FF6B00', marginBottom: '10px' }}>{feature.title}</h3>
               <p style={{ color: '#888', lineHeight: '1.5', margin: 0 }}>{feature.desc}</p>
@@ -329,7 +299,6 @@ function App() {
         }}>Join As A PT 💪🏼</button>
       </div>
 
-      {/* Final CTA */}
       <div style={{ padding: '80px 40px', textAlign: 'center', borderTop: '1px solid #222' }}>
         <h2 style={{ fontSize: '48px', fontWeight: 'bold', marginBottom: '20px' }}>
           Ready to become <span style={{ color: '#FF6B00' }}>Unrecognisable?</span>
@@ -343,21 +312,12 @@ function App() {
         }}>Join the Waiting List 🔥</button>
       </div>
 
-      {/* Footer */}
       <div style={{ textAlign: 'center', padding: '30px 20px', borderTop: '1px solid #222', color: '#555' }}>
         <p style={{ marginBottom: '12px' }}>© 2026 EmergeU — Become Unrecognisable</p>
         <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', flexWrap: 'wrap' }}>
-          <button onClick={openPrivacyPolicy} style={{
-            backgroundColor: 'transparent', color: '#555', border: 'none',
-            cursor: 'pointer', fontSize: '13px', textDecoration: 'underline'
-          }}>Privacy Policy</button>
-          <button onClick={openTerms} style={{
-            backgroundColor: 'transparent', color: '#555', border: 'none',
-            cursor: 'pointer', fontSize: '13px', textDecoration: 'underline'
-          }}>Terms & Conditions</button>
-          <a href="mailto:emergeu@emergeu.co.uk" style={{ color: '#555', fontSize: '13px' }}>
-            emergeu@emergeu.co.uk
-          </a>
+          <button onClick={openPrivacyPolicy} style={{ backgroundColor: 'transparent', color: '#555', border: 'none', cursor: 'pointer', fontSize: '13px', textDecoration: 'underline' }}>Privacy Policy</button>
+          <button onClick={openTerms} style={{ backgroundColor: 'transparent', color: '#555', border: 'none', cursor: 'pointer', fontSize: '13px', textDecoration: 'underline' }}>Terms & Conditions</button>
+          <a href="mailto:emergeu@emergeu.co.uk" style={{ color: '#555', fontSize: '13px' }}>emergeu@emergeu.co.uk</a>
         </div>
       </div>
 
