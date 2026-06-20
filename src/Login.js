@@ -16,6 +16,12 @@ function Login({ onSwitch }) {
     setLoading(false);
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleLogin();
+    }
+  };
+
   return (
     <div style={{
       backgroundColor: '#0a0a0a', minHeight: '100vh', display: 'flex',
@@ -46,6 +52,7 @@ function Login({ onSwitch }) {
         <input
           type="email" placeholder="Email address" value={email}
           onChange={e => setEmail(e.target.value)}
+          onKeyDown={handleKeyDown}
           style={{
             width: '100%', padding: '14px', borderRadius: '12px',
             border: '1px solid #333', backgroundColor: '#1a1a1a', color: 'white',
@@ -55,6 +62,7 @@ function Login({ onSwitch }) {
         <input
           type="password" placeholder="Password" value={password}
           onChange={e => setPassword(e.target.value)}
+          onKeyDown={handleKeyDown}
           style={{
             width: '100%', padding: '14px', borderRadius: '12px',
             border: '1px solid #333', backgroundColor: '#1a1a1a', color: 'white',

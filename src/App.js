@@ -1,4 +1,4 @@
-/* eslint-disable */ // v2
+/* eslint-disable */ // v3 - history-aware navigation
 import { useState, useEffect } from 'react';
 import { supabase } from './supabase';
 import Login from './Login';
@@ -51,9 +51,89 @@ function App() {
   const [showPTBookings, setShowPTBookings] = useState(false);
   const [showProgress, setShowProgress] = useState(false);
 
+  // ----- Screen navigation system (fixes back-button reload issue) -----
+  const closeAllScreens = () => {
+    setShowChat(false);
+    setShowMatches(false);
+    setShowPTProfile(false);
+    setShowAdmin(false);
+    setShowMessaging(false);
+    setShowSantiago(false);
+    setShowEmma(false);
+    setShowMealIdeas(false);
+    setShowFoodTracker(false);
+    setShowPTTools(false);
+    setShowSuccess(false);
+    setShowPrivacyPolicy(false);
+    setShowTerms(false);
+    setShowSessionBooking(false);
+    setShowPTBookings(false);
+    setShowProgress(false);
+    setShowForm(false);
+  };
+
+  const screenSetters = {
+    chat: setShowChat,
+    matches: setShowMatches,
+    ptProfile: setShowPTProfile,
+    admin: setShowAdmin,
+    messaging: setShowMessaging,
+    santiago: setShowSantiago,
+    emma: setShowEmma,
+    mealIdeas: setShowMealIdeas,
+    foodTracker: setShowFoodTracker,
+    ptTools: setShowPTTools,
+    success: setShowSuccess,
+    privacyPolicy: setShowPrivacyPolicy,
+    terms: setShowTerms,
+    sessionBooking: setShowSessionBooking,
+    ptBookings: setShowPTBookings,
+    progress: setShowProgress,
+  };
+
+  const applyScreen = (screenName) => {
+    closeAllScreens();
+    if (screenName === 'login') {
+      setShowForm(true);
+      setAuthMode('login');
+    } else if (screenName === 'signup') {
+      setShowForm(true);
+      setAuthMode('signup');
+    } else if (screenName && screenSetters[screenName]) {
+      screenSetters[screenName](true);
+    }
+    // if screenName is falsy, all screens stay closed -> falls back to dashboard/landing
+  };
+
+  const goTo = (screenName, path = '/') => {
+    applyScreen(screenName);
+    window.history.pushState({ screen: screenName }, '', path);
+  };
+
+  const goBack = () => {
+    window.history.back();
+  };
+  // ----- End navigation system -----
+
   useEffect(() => {
-    if (window.location.pathname === '/privacy-policy') setShowPrivacyPolicy(true);
-    if (window.location.pathname === '/terms') setShowTerms(true);
+    // Handle direct URL navigation on load
+    const initialPath = window.location.pathname;
+    let initialScreen = null;
+    if (initialPath === '/privacy-policy') {
+      setShowPrivacyPolicy(true);
+      initialScreen = 'privacyPolicy';
+    } else if (initialPath === '/terms') {
+      setShowTerms(true);
+      initialScreen = 'terms';
+    }
+
+    // Establish baseline history entry so back button works predictably
+    window.history.replaceState({ screen: initialScreen }, '', initialPath);
+
+    const handlePopState = (event) => {
+      applyScreen(event.state?.screen);
+    };
+    window.addEventListener('popstate', handlePopState);
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
@@ -62,28 +142,12 @@ function App() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
-    return () => subscription.unsubscribe();
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener('popstate', handlePopState);
+    };
   }, []);
-
-  const openPrivacyPolicy = () => {
-    window.history.pushState({}, '', '/privacy-policy');
-    setShowPrivacyPolicy(true);
-  };
-
-  const openTerms = () => {
-    window.history.pushState({}, '', '/terms');
-    setShowTerms(true);
-  };
-
-  const closePrivacyPolicy = () => {
-    window.history.pushState({}, '', '/');
-    setShowPrivacyPolicy(false);
-  };
-
-  const closeTerms = () => {
-    window.history.pushState({}, '', '/');
-    setShowTerms(false);
-  };
 
   const handleSubmit = async () => {
     if (!name || !email) return;
@@ -120,37 +184,37 @@ function App() {
     </div>
   );
 
-  if (showPrivacyPolicy) return <PrivacyPolicy onBack={closePrivacyPolicy} />;
-  if (showTerms) return <TermsAndConditions onBack={closeTerms} />;
-  if (showProgress) return <ProgressTracking user={user} onBack={() => setShowProgress(false)} />;
-  if (showSessionBooking) return <SessionBooking user={user} onBack={() => setShowSessionBooking(false)} />;
-  if (showPTBookings) return <PTBookings user={user} onBack={() => setShowPTBookings(false)} />;
-  if (showChat) return <AiChat onComplete={() => { setShowChat(false); setShowMatches(true); }} />;
-  if (showMatches) return <MatchResults user={user} onBack={() => setShowMatches(false)} />;
-  if (showPTProfile) return <PTProfile user={user} onComplete={() => setShowPTProfile(false)} />;
-  if (showAdmin) return <AdminDashboard user={user} onExit={() => setShowAdmin(false)} />;
-  if (showMessaging) return <Messaging user={user} onBack={() => setShowMessaging(false)} />;
-  if (showSantiago) return <Santiago user={user} onBack={() => setShowSantiago(false)} />;
-  if (showEmma) return <Emma user={user} onBack={() => setShowEmma(false)} />;
-  if (showMealIdeas) return <MealIdeas user={user} onBack={() => setShowMealIdeas(false)} />;
-  if (showFoodTracker) return <FoodTracker user={user} onBack={() => setShowFoodTracker(false)} />;
-  if (showPTTools) return <PTTools user={user} onBack={() => setShowPTTools(false)} />;
-  if (showSuccess) return <Success user={user} onContinue={() => { setShowSuccess(false); setShowSantiago(true); }} />;
+  if (showPrivacyPolicy) return <PrivacyPolicy onBack={goBack} />;
+  if (showTerms) return <TermsAndConditions onBack={goBack} />;
+  if (showProgress) return <ProgressTracking user={user} onBack={goBack} />;
+  if (showSessionBooking) return <SessionBooking user={user} onBack={goBack} />;
+  if (showPTBookings) return <PTBookings user={user} onBack={goBack} />;
+  if (showChat) return <AiChat onComplete={() => goTo('matches')} />;
+  if (showMatches) return <MatchResults user={user} onBack={goBack} />;
+  if (showPTProfile) return <PTProfile user={user} onComplete={goBack} />;
+  if (showAdmin) return <AdminDashboard user={user} onExit={goBack} />;
+  if (showMessaging) return <Messaging user={user} onBack={goBack} />;
+  if (showSantiago) return <Santiago user={user} onBack={goBack} />;
+  if (showEmma) return <Emma user={user} onBack={goBack} />;
+  if (showMealIdeas) return <MealIdeas user={user} onBack={goBack} />;
+  if (showFoodTracker) return <FoodTracker user={user} onBack={goBack} />;
+  if (showPTTools) return <PTTools user={user} onBack={goBack} />;
+  if (showSuccess) return <Success user={user} onContinue={() => goTo('santiago')} />;
 
   if (user) return <Dashboard
     user={user}
-    onStartChat={() => setShowChat(true)}
-    onBuildProfile={() => setShowPTProfile(true)}
-    onOpenAdmin={() => setShowAdmin(true)}
-    onOpenMessaging={() => setShowMessaging(true)}
-    onOpenSantiago={() => setShowSantiago(true)}
-    onOpenEmma={() => setShowEmma(true)}
-    onOpenMealIdeas={() => setShowMealIdeas(true)}
-    onOpenFoodTracker={() => setShowFoodTracker(true)}
-    onOpenPTTools={() => setShowPTTools(true)}
-    onOpenSessionBooking={() => setShowSessionBooking(true)}
-    onOpenPTBookings={() => setShowPTBookings(true)}
-    onOpenProgress={() => setShowProgress(true)}
+    onStartChat={() => goTo('chat')}
+    onBuildProfile={() => goTo('ptProfile')}
+    onOpenAdmin={() => goTo('admin')}
+    onOpenMessaging={() => goTo('messaging')}
+    onOpenSantiago={() => goTo('santiago')}
+    onOpenEmma={() => goTo('emma')}
+    onOpenMealIdeas={() => goTo('mealIdeas')}
+    onOpenFoodTracker={() => goTo('foodTracker')}
+    onOpenPTTools={() => goTo('ptTools')}
+    onOpenSessionBooking={() => goTo('sessionBooking')}
+    onOpenPTBookings={() => goTo('ptBookings')}
+    onOpenProgress={() => goTo('progress')}
   />;
 
   if (showForm && authMode === 'login') return <Login onSwitch={() => setAuthMode('signup')} />;
@@ -167,11 +231,11 @@ function App() {
       }}>
         <img src={process.env.PUBLIC_URL + '/logo.jpg'} alt="EmergeU" style={{ height: '70px', borderRadius: '8px' }} />
         <div style={{ display: 'flex', gap: '12px' }}>
-          <button onClick={() => { setShowForm(true); setAuthMode('login'); }} style={{
+          <button onClick={() => goTo('login')} style={{
             backgroundColor: 'transparent', color: 'white', border: '2px solid #FF6B00',
             padding: '10px 20px', borderRadius: '25px', cursor: 'pointer', fontSize: '15px', fontWeight: 'bold'
           }}>Sign In</button>
-          <button onClick={() => { setShowForm(true); setAuthMode('signup'); }} style={{
+          <button onClick={() => goTo('signup')} style={{
             backgroundColor: '#FF6B00', color: 'white', border: 'none',
             padding: '10px 20px', borderRadius: '25px', cursor: 'pointer', fontSize: '15px', fontWeight: 'bold'
           }}>Join Waiting List</button>
@@ -193,11 +257,11 @@ function App() {
             AI powered matching that connects you with the right PT based on your goals, personality and lifestyle. Online, hybrid or in person.
           </p>
           <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center', marginTop: '20px' }}>
-            <button onClick={() => { setShowForm(true); setAuthMode('signup'); }} style={{
+            <button onClick={() => goTo('signup')} style={{
               backgroundColor: '#FF6B00', color: 'white', border: 'none',
               padding: '16px 40px', borderRadius: '30px', cursor: 'pointer', fontSize: '18px', fontWeight: 'bold'
             }}>Find My PT</button>
-            <button onClick={() => { setShowForm(true); setAuthMode('signup'); }} style={{
+            <button onClick={() => goTo('signup')} style={{
               backgroundColor: 'transparent', color: 'white', border: '2px solid #FF6B00',
               padding: '16px 40px', borderRadius: '30px', cursor: 'pointer', fontSize: '18px', fontWeight: 'bold'
             }}>Join As A PT</button>
@@ -293,7 +357,7 @@ function App() {
             </div>
           ))}
         </div>
-        <button onClick={() => { setShowForm(true); setAuthMode('signup'); }} style={{
+        <button onClick={() => goTo('signup')} style={{
           backgroundColor: '#FF6B00', color: 'white', border: 'none',
           padding: '16px 40px', borderRadius: '30px', cursor: 'pointer', fontSize: '18px', fontWeight: 'bold'
         }}>Join As A PT 💪🏼</button>
@@ -306,7 +370,7 @@ function App() {
         <p style={{ fontSize: '18px', color: '#888', maxWidth: '500px', margin: '0 auto 40px', lineHeight: '1.8' }}>
           Join the waiting list today. Be first to access EmergeU when we launch and start your transformation journey.
         </p>
-        <button onClick={() => { setShowForm(true); setAuthMode('signup'); }} style={{
+        <button onClick={() => goTo('signup')} style={{
           backgroundColor: '#FF6B00', color: 'white', border: 'none',
           padding: '20px 60px', borderRadius: '30px', cursor: 'pointer', fontSize: '22px', fontWeight: 'bold'
         }}>Join the Waiting List 🔥</button>
@@ -315,13 +379,13 @@ function App() {
       <div style={{ textAlign: 'center', padding: '30px 20px', borderTop: '1px solid #222', color: '#555' }}>
         <p style={{ marginBottom: '12px' }}>© 2026 EmergeU — Become Unrecognisable</p>
         <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', flexWrap: 'wrap' }}>
-          <button onClick={openPrivacyPolicy} style={{ backgroundColor: 'transparent', color: '#555', border: 'none', cursor: 'pointer', fontSize: '13px', textDecoration: 'underline' }}>Privacy Policy</button>
-          <button onClick={openTerms} style={{ backgroundColor: 'transparent', color: '#555', border: 'none', cursor: 'pointer', fontSize: '13px', textDecoration: 'underline' }}>Terms & Conditions</button>
+          <button onClick={() => goTo('privacyPolicy', '/privacy-policy')} style={{ backgroundColor: 'transparent', color: '#555', border: 'none', cursor: 'pointer', fontSize: '13px', textDecoration: 'underline' }}>Privacy Policy</button>
+          <button onClick={() => goTo('terms', '/terms')} style={{ backgroundColor: 'transparent', color: '#555', border: 'none', cursor: 'pointer', fontSize: '13px', textDecoration: 'underline' }}>Terms & Conditions</button>
           <a href="mailto:emergeu@emergeu.co.uk" style={{ color: '#555', fontSize: '13px' }}>emergeu@emergeu.co.uk</a>
         </div>
       </div>
 
-      <CookieBanner onOpenPrivacy={openPrivacyPolicy} />
+      <CookieBanner onOpenPrivacy={() => goTo('privacyPolicy', '/privacy-policy')} />
     </div>
   );
 }
