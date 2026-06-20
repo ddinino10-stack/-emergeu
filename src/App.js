@@ -201,7 +201,7 @@ function App() {
   if (showSessionBooking) return <SessionBooking user={user} onBack={goBack} onMessage={openMessaging} />;
   if (showPTBookings) return <PTBookings user={user} onBack={goBack} onMessage={openMessaging} />;
   if (showChat) return <AiChat onComplete={() => goTo('matches')} />;
-  if (showMatches) return <MatchResults user={user} onBack={goBack} />;
+  if (showMatches) return <MatchResults user={user} onBack={goBack} onMessage={openMessaging} />;
   if (showPTProfile) return <PTProfile user={user} onComplete={goBack} />;
   if (showAdmin) return <AdminDashboard user={user} onExit={goBack} />;
   if (showMessaging) return <Messaging user={user} onBack={closeMessaging} initialContact={messageTarget} />;
