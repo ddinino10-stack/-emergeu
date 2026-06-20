@@ -217,7 +217,7 @@ function Messaging({ user, onBack, initialContact }) {
                       }}>
                         <p style={{ margin: '0 0 4px 0' }}>{msg.message}</p>
                         <p style={{ margin: 0, fontSize: '11px', opacity: 0.6, textAlign: 'right' }}>
-                          {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(msg.created_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/London' })}
                         </p>
                       </div>
                     </div>
