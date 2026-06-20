@@ -219,6 +219,13 @@ function SessionBooking({ user, onBack, onMessage }) {
                         padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold'
                       }}>{b.status === 'confirmed' ? '✅ Confirmed' : '⏳ Pending'}</span>
                       <div style={{ display: 'flex', gap: '8px' }}>
+                        {b.status === 'confirmed' && (
+                          <a href={`https://meet.jit.si/emergeu-${b.id}`} target="_blank" rel="noreferrer" style={{
+                            backgroundColor: '#FF6B00', color: 'white',
+                            border: 'none', padding: '6px 14px', textDecoration: 'none',
+                            borderRadius: '20px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold'
+                          }}>📹 Join Call</a>
+                        )}
                         {onMessage && (
                           <button onClick={() => onMessage({ id: b.pt_id, name: b.pt_name })} style={{
                             backgroundColor: 'transparent', color: '#FF6B00',

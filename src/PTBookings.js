@@ -166,13 +166,20 @@ function PTBookings({ user, onBack, onMessage }) {
                           backgroundColor: 'rgba(0,204,68,0.1)', border: '1px solid #00cc44',
                           color: '#00cc44', padding: '6px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: 'bold'
                         }}>✅ Confirmed</span>
-                        {onMessage && (
-                          <button onClick={() => onMessage({ id: b.client_id, name: b.client_name })} style={{
-                            backgroundColor: 'transparent', color: '#FF6B00',
-                            border: '1px solid #FF6B00', padding: '6px 14px',
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          <a href={`https://meet.jit.si/emergeu-${b.id}`} target="_blank" rel="noreferrer" style={{
+                            backgroundColor: '#FF6B00', color: 'white',
+                            border: 'none', padding: '6px 14px', textDecoration: 'none',
                             borderRadius: '20px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold'
-                          }}>💬 Message</button>
-                        )}
+                          }}>📹 Join Call</a>
+                          {onMessage && (
+                            <button onClick={() => onMessage({ id: b.client_id, name: b.client_name })} style={{
+                              backgroundColor: 'transparent', color: '#FF6B00',
+                              border: '1px solid #FF6B00', padding: '6px 14px',
+                              borderRadius: '20px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold'
+                            }}>💬 Message</button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
