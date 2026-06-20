@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from './supabase';
 
-function PTBookings({ user, onBack }) {
+function PTBookings({ user, onBack, onMessage }) {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('pending');
@@ -62,7 +62,6 @@ function PTBookings({ user, onBack }) {
         </h1>
         <p style={{ color: '#888', marginBottom: '30px' }}>Manage your client session requests</p>
 
-        {/* Stats */}
         <div style={{ display: 'flex', gap: '16px', marginBottom: '30px', flexWrap: 'wrap' }}>
           {[
             { label: 'Pending', value: pending.length, colour: '#FFA500' },
@@ -79,7 +78,6 @@ function PTBookings({ user, onBack }) {
           ))}
         </div>
 
-        {/* Tabs */}
         <div style={{ display: 'flex', borderBottom: '1px solid #222', marginBottom: '24px' }}>
           <button style={tabStyle('pending')} onClick={() => setActiveTab('pending')}>
             Pending {pending.length > 0 && <span style={{
@@ -95,7 +93,6 @@ function PTBookings({ user, onBack }) {
           <p style={{ color: '#888', textAlign: 'center' }}>Loading bookings...</p>
         ) : (
           <>
-            {/* Pending Tab */}
             {activeTab === 'pending' && (
               pending.length === 0 ? (
                 <div style={{
@@ -117,17 +114,26 @@ function PTBookings({ user, onBack }) {
                         <p style={{ color: '#888', margin: '0 0 4px 0' }}>📅 {new Date(b.date).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} at {b.time}</p>
                         {b.notes && <p style={{ color: '#555', fontSize: '13px', margin: '8px 0 0 0' }}>📝 {b.notes}</p>}
                       </div>
-                      <div style={{ display: 'flex', gap: '10px' }}>
-                        <button onClick={() => confirmBooking(b.id)} style={{
-                          backgroundColor: '#FF6B00', color: 'white', border: 'none',
-                          padding: '10px 20px', borderRadius: '20px', cursor: 'pointer',
-                          fontWeight: 'bold', fontSize: '14px'
-                        }}>✅ Confirm</button>
-                        <button onClick={() => declineBooking(b.id)} style={{
-                          backgroundColor: 'transparent', color: '#ff4444',
-                          border: '2px solid #ff4444', padding: '10px 20px',
-                          borderRadius: '20px', cursor: 'pointer', fontSize: '14px'
-                        }}>❌ Decline</button>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                          <button onClick={() => confirmBooking(b.id)} style={{
+                            backgroundColor: '#FF6B00', color: 'white', border: 'none',
+                            padding: '10px 20px', borderRadius: '20px', cursor: 'pointer',
+                            fontWeight: 'bold', fontSize: '14px'
+                          }}>✅ Confirm</button>
+                          <button onClick={() => declineBooking(b.id)} style={{
+                            backgroundColor: 'transparent', color: '#ff4444',
+                            border: '2px solid #ff4444', padding: '10px 20px',
+                            borderRadius: '20px', cursor: 'pointer', fontSize: '14px'
+                          }}>❌ Decline</button>
+                        </div>
+                        {onMessage && (
+                          <button onClick={() => onMessage({ id: b.client_id, name: b.client_name })} style={{
+                            backgroundColor: 'transparent', color: '#FF6B00',
+                            border: '1px solid #FF6B00', padding: '6px 14px',
+                            borderRadius: '20px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold'
+                          }}>💬 Message</button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -135,7 +141,6 @@ function PTBookings({ user, onBack }) {
               )
             )}
 
-            {/* Upcoming Tab */}
             {activeTab === 'upcoming' && (
               upcoming.length === 0 ? (
                 <div style={{
@@ -156,17 +161,25 @@ function PTBookings({ user, onBack }) {
                         <p style={{ color: '#ccc', margin: '0 0 4px 0' }}>👤 {b.client_name}</p>
                         <p style={{ color: '#888', margin: 0 }}>📅 {new Date(b.date).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} at {b.time}</p>
                       </div>
-                      <span style={{
-                        backgroundColor: 'rgba(0,204,68,0.1)', border: '1px solid #00cc44',
-                        color: '#00cc44', padding: '6px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: 'bold'
-                      }}>✅ Confirmed</span>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
+                        <span style={{
+                          backgroundColor: 'rgba(0,204,68,0.1)', border: '1px solid #00cc44',
+                          color: '#00cc44', padding: '6px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: 'bold'
+                        }}>✅ Confirmed</span>
+                        {onMessage && (
+                          <button onClick={() => onMessage({ id: b.client_id, name: b.client_name })} style={{
+                            backgroundColor: 'transparent', color: '#FF6B00',
+                            border: '1px solid #FF6B00', padding: '6px 14px',
+                            borderRadius: '20px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold'
+                          }}>💬 Message</button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))
               )
             )}
 
-            {/* Past Tab */}
             {activeTab === 'past' && (
               past.length === 0 ? (
                 <div style={{

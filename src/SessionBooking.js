@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from './supabase';
 
-function SessionBooking({ user, onBack }) {
+function SessionBooking({ user, onBack, onMessage }) {
   const [bookings, setBookings] = useState([]);
   const [pts, setPts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -120,7 +120,6 @@ function SessionBooking({ user, onBack }) {
           }}>+ Book Session</button>
         </div>
 
-        {/* Booking Form */}
         {showForm && (
           <div style={{
             backgroundColor: '#111', border: '1px solid #333',
@@ -191,7 +190,6 @@ function SessionBooking({ user, onBack }) {
           <p style={{ color: '#888', textAlign: 'center' }}>Loading sessions...</p>
         ) : (
           <>
-            {/* Upcoming Sessions */}
             <h2 style={{ fontSize: '20px', marginBottom: '16px', color: '#ccc' }}>Upcoming Sessions</h2>
             {upcoming.length === 0 ? (
               <div style={{
@@ -220,20 +218,28 @@ function SessionBooking({ user, onBack }) {
                         color: getStatusColour(b.status),
                         padding: '4px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold'
                       }}>{b.status === 'confirmed' ? '✅ Confirmed' : '⏳ Pending'}</span>
-                      {b.status === 'pending' && (
-                        <button onClick={() => cancelBooking(b.id)} style={{
-                          backgroundColor: 'transparent', color: '#ff4444',
-                          border: '1px solid #ff4444', padding: '6px 14px',
-                          borderRadius: '20px', cursor: 'pointer', fontSize: '12px'
-                        }}>Cancel</button>
-                      )}
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        {onMessage && (
+                          <button onClick={() => onMessage({ id: b.pt_id, name: b.pt_name })} style={{
+                            backgroundColor: 'transparent', color: '#FF6B00',
+                            border: '1px solid #FF6B00', padding: '6px 14px',
+                            borderRadius: '20px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold'
+                          }}>💬 Message</button>
+                        )}
+                        {b.status === 'pending' && (
+                          <button onClick={() => cancelBooking(b.id)} style={{
+                            backgroundColor: 'transparent', color: '#ff4444',
+                            border: '1px solid #ff4444', padding: '6px 14px',
+                            borderRadius: '20px', cursor: 'pointer', fontSize: '12px'
+                          }}>Cancel</button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
               ))
             )}
 
-            {/* Past Sessions */}
             {past.length > 0 && (
               <>
                 <h2 style={{ fontSize: '20px', marginBottom: '16px', color: '#ccc', marginTop: '30px' }}>Past Sessions</h2>

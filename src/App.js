@@ -50,6 +50,7 @@ function App() {
   const [showSessionBooking, setShowSessionBooking] = useState(false);
   const [showPTBookings, setShowPTBookings] = useState(false);
   const [showProgress, setShowProgress] = useState(false);
+  const [messageTarget, setMessageTarget] = useState(null);
 
   // ----- Screen navigation system (fixes back-button reload issue) -----
   const closeAllScreens = () => {
@@ -112,6 +113,16 @@ function App() {
 
   const goBack = () => {
     window.history.back();
+  };
+
+  const openMessaging = (target) => {
+    setMessageTarget(target || null);
+    goTo('messaging');
+  };
+
+  const closeMessaging = () => {
+    setMessageTarget(null);
+    goBack();
   };
   // ----- End navigation system -----
 
@@ -187,13 +198,13 @@ function App() {
   if (showPrivacyPolicy) return <PrivacyPolicy onBack={goBack} />;
   if (showTerms) return <TermsAndConditions onBack={goBack} />;
   if (showProgress) return <ProgressTracking user={user} onBack={goBack} />;
-  if (showSessionBooking) return <SessionBooking user={user} onBack={goBack} />;
-  if (showPTBookings) return <PTBookings user={user} onBack={goBack} />;
+  if (showSessionBooking) return <SessionBooking user={user} onBack={goBack} onMessage={openMessaging} />;
+  if (showPTBookings) return <PTBookings user={user} onBack={goBack} onMessage={openMessaging} />;
   if (showChat) return <AiChat onComplete={() => goTo('matches')} />;
   if (showMatches) return <MatchResults user={user} onBack={goBack} />;
   if (showPTProfile) return <PTProfile user={user} onComplete={goBack} />;
   if (showAdmin) return <AdminDashboard user={user} onExit={goBack} />;
-  if (showMessaging) return <Messaging user={user} onBack={goBack} />;
+  if (showMessaging) return <Messaging user={user} onBack={closeMessaging} initialContact={messageTarget} />;
   if (showSantiago) return <Santiago user={user} onBack={goBack} />;
   if (showEmma) return <Emma user={user} onBack={goBack} />;
   if (showMealIdeas) return <MealIdeas user={user} onBack={goBack} />;
@@ -206,7 +217,7 @@ function App() {
     onStartChat={() => goTo('chat')}
     onBuildProfile={() => goTo('ptProfile')}
     onOpenAdmin={() => goTo('admin')}
-    onOpenMessaging={() => goTo('messaging')}
+    onOpenMessaging={() => openMessaging(null)}
     onOpenSantiago={() => goTo('santiago')}
     onOpenEmma={() => goTo('emma')}
     onOpenMealIdeas={() => goTo('mealIdeas')}

@@ -49,18 +49,16 @@ function ProgressTracking({ user, onBack }) {
     if (!form.date) return;
     setSubmitting(true);
     const entry = {
-  user_id: user.id,
-  date: form.date,
-  weight: form.weight ? parseFloat(form.weight) : null,
-  chest: form.chest ? parseFloat(form.chest) : null,
-  waist: form.waist ? parseFloat(form.waist) : null,
-  hips: form.hips ? parseFloat(form.hips) : null,
-  arms: form.arms ? parseFloat(form.arms) : null,
-  thighs: form.thighs ? parseFloat(form.thighs) : null,
-  notes: form.notes || null,
-  created_at: new Date().toISOString()
-};
-    
+      user_id: user.id,
+      date: form.date,
+      weight: form.weight ? parseFloat(form.weight) : null,
+      chest: form.chest ? parseFloat(form.chest) : null,
+      waist: form.waist ? parseFloat(form.waist) : null,
+      hips: form.hips ? parseFloat(form.hips) : null,
+      arms: form.arms ? parseFloat(form.arms) : null,
+      thighs: form.thighs ? parseFloat(form.thighs) : null,
+      notes: form.notes || null
+    };
     const { error } = await supabase.from('progress_logs').insert([entry]);
     if (!error) {
       setSaved(true);

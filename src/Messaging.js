@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from './supabase';
 
-function Messaging({ user, onBack }) {
+function Messaging({ user, onBack, initialContact }) {
   const [conversations, setConversations] = useState([]);
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -13,6 +13,17 @@ function Messaging({ user, onBack }) {
   useEffect(() => {
     fetchConversations();
   }, []);
+
+  // Merge in a direct-message target (e.g. opened from a booking) once conversations have loaded
+  useEffect(() => {
+    if (!initialContact || loading) return;
+    setConversations(prev => {
+      const exists = prev.find(c => c.id === initialContact.id);
+      if (exists) return prev;
+      return [{ id: initialContact.id, name: initialContact.name, lastMessage: 'Say hello 👋' }, ...prev];
+    });
+    setSelectedConversation({ id: initialContact.id, name: initialContact.name, lastMessage: '' });
+  }, [initialContact, loading]);
 
   useEffect(() => {
     if (selectedConversation) {
@@ -84,7 +95,6 @@ function Messaging({ user, onBack }) {
       fontFamily: 'Arial, sans-serif', color: 'white',
       display: 'flex', flexDirection: 'column'
     }}>
-      {/* Header */}
       <nav style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
         padding: '20px 30px', borderBottom: '1px solid #222',
@@ -107,7 +117,6 @@ function Messaging({ user, onBack }) {
 
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden', height: 'calc(100vh - 85px)' }}>
 
-        {/* Conversations List */}
         <div style={{
           width: '300px', borderRight: '1px solid #222',
           overflowY: 'auto', flexShrink: 0
@@ -157,7 +166,6 @@ function Messaging({ user, onBack }) {
           )}
         </div>
 
-        {/* Message Window */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           {!selectedConversation ? (
             <div style={{
@@ -172,7 +180,6 @@ function Messaging({ user, onBack }) {
             </div>
           ) : (
             <>
-              {/* Conversation Header */}
               <div style={{
                 padding: '16px 24px', borderBottom: '1px solid #222',
                 display: 'flex', alignItems: 'center', gap: '12px'
@@ -188,7 +195,6 @@ function Messaging({ user, onBack }) {
                 </div>
               </div>
 
-              {/* Messages */}
               <div style={{
                 flex: 1, overflowY: 'auto', padding: '20px',
                 display: 'flex', flexDirection: 'column', gap: '12px'
@@ -220,7 +226,6 @@ function Messaging({ user, onBack }) {
                 <div ref={messagesEndRef} />
               </div>
 
-              {/* Message Input */}
               <div style={{
                 padding: '16px 24px', borderTop: '1px solid #222',
                 display: 'flex', gap: '12px', backgroundColor: 'rgba(0,0,0,0.8)'
