@@ -58,7 +58,7 @@ function Dashboard({ user, onStartChat, onBuildProfile, onOpenAdmin, onOpenMessa
             { icon: '⭐', title: 'Reviews', desc: 'Coming soon' },
           ] : [
             { icon: '🤖', title: 'Find My PT', desc: 'Start AI matching now!', action: onStartChat },
-            { icon: '🏋️', title: 'Santiago AI PT', desc: 'Your 24/7 AI fitness coach', action: onOpenSantiago },
+            { icon: '🏋️', title: 'Romeo AI PT', desc: 'Your 24/7 AI fitness coach', action: onOpenSantiago },
             { icon: '👩', title: 'Emma AI PT', desc: 'Your supportive AI coach', action: onOpenEmma },
             { icon: '📅', title: 'My Sessions', desc: 'Book and manage sessions', action: onOpenSessionBooking },
             { icon: '💬', title: 'Messages', desc: 'Chat with your PT', action: onOpenMessaging },
