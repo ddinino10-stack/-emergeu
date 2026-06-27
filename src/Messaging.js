@@ -77,18 +77,23 @@ function Messaging({ user, onBack, initialContact }) {
 
   const sendMessage = async () => {
     if (!newMessage.trim() || !selectedConversation) return;
-    const userName = user?.user_metadata?.name || 'User';
-    await supabase.from('messages').insert([{
-      sender_id: user.id,
-      receiver_id: selectedConversation.id,
-      message: newMessage,
-      sender_name: userName,
-      receiver_name: selectedConversation.name,
-      created_at: new Date().toISOString()
-      }]);
-    setNewMessage('');
-    fetchMessages(selectedConversation.id);
+  const userName = user?.user_metadata?.name || 'User';
+  const msgText = newMessage;
+  setNewMessage('');
+
+  // Optimistically add message to UI immediately
+  const optimisticMsg = {
+    sender_id: user.id,
+    receiver_id: selectedConversation.id,
+    message: msgText,
+    sender_name: userName,
+    receiver_name: selectedConversation.name,
+    created_at: new Date().toISOString()
   };
+  setMessages(prev => [...prev, optimisticMsg]);
+
+  await supabase.from('messages').insert([optimisticMsg]);
+};
 
   return (
     <div style={{
