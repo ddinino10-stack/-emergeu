@@ -28,15 +28,32 @@ function Messaging({ user, onBack, initialContact }) {
   useEffect(() => {
     if (selectedConversation) {
       fetchMessages(selectedConversation.id);
+      // Use unique channel name per conversation to avoid conflicts
+      const channelName = `messages-${user.id}-${selectedConversation.id}`;
       const subscription = supabase
-        .channel('messages')
+        .channel(channelName)
         .on('postgres_changes', {
           event: 'INSERT',
           schema: 'public',
           table: 'messages'
-        }, () => fetchMessages(selectedConversation.id))
+        }, (payload) => {
+          const msg = payload.new;
+          // Only add if it's part of this conversation
+          if (
+            (msg.sender_id === user.id && msg.receiver_id === selectedConversation.id) ||
+            (msg.sender_id === selectedConversation.id && msg.receiver_id === user.id)
+          ) {
+            setMessages(prev => {
+              // Avoid duplicates
+              if (prev.find(m => m.created_at === msg.created_at && m.sender_id === msg.sender_id && m.message === msg.message)) {
+                return prev;
+              }
+              return [...prev, msg];
+            });
+          }
+        })
         .subscribe();
-      return () => subscription.unsubscribe();
+      return () => supabase.removeChannel(subscription);
     }
   }, [selectedConversation]);
 
@@ -77,23 +94,19 @@ function Messaging({ user, onBack, initialContact }) {
 
   const sendMessage = async () => {
     if (!newMessage.trim() || !selectedConversation) return;
-  const userName = user?.user_metadata?.name || 'User';
-  const msgText = newMessage;
-  setNewMessage('');
-
-  // Optimistically add message to UI immediately
-  const optimisticMsg = {
-    sender_id: user.id,
-    receiver_id: selectedConversation.id,
-    message: msgText,
-    sender_name: userName,
-    receiver_name: selectedConversation.name,
-    created_at: new Date().toISOString()
+    const userName = user?.user_metadata?.name || 'User';
+    const msgText = newMessage;
+    setNewMessage('');
+    const { error } = await supabase.from('messages').insert([{
+      sender_id: user.id,
+      receiver_id: selectedConversation.id,
+      message: msgText,
+      sender_name: userName,
+      receiver_name: selectedConversation.name,
+      created_at: new Date().toISOString()
+    }]);
+    if (!error) fetchMessages(selectedConversation.id);
   };
-  setMessages(prev => [...prev, optimisticMsg]);
-
-  await supabase.from('messages').insert([optimisticMsg]);
-};
 
   return (
     <div style={{
@@ -223,7 +236,7 @@ function Messaging({ user, onBack, initialContact }) {
                       }}>
                         <p style={{ margin: '0 0 4px 0' }}>{msg.message}</p>
                         <p style={{ margin: 0, fontSize: '11px', opacity: 0.6, textAlign: 'right' }}>
-                          {new Date(msg.created_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/London' })}
+                          {msg.created_at ? new Date(msg.created_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/London' }) : ''}
                         </p>
                       </div>
                     </div>
