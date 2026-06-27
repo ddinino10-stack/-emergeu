@@ -88,7 +88,7 @@ function Messaging({ user, onBack, initialContact }) {
       .from('messages')
       .select('*')
       .or(`and(sender_id.eq.${user.id},receiver_id.eq.${otherId}),and(sender_id.eq.${otherId},receiver_id.eq.${user.id})`)
-      .order('created_at', { ascending: true });
+      .order('created_at', { ascending: true, nullsFirst: true });
     if (data) setMessages(data);
   };
 
