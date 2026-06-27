@@ -83,8 +83,9 @@ function Messaging({ user, onBack, initialContact }) {
       receiver_id: selectedConversation.id,
       message: newMessage,
       sender_name: userName,
-      receiver_name: selectedConversation.name
-    }]);
+      receiver_name: selectedConversation.name,
+      created_at: new Date().toISOString()
+      }]);
     setNewMessage('');
     fetchMessages(selectedConversation.id);
   };
